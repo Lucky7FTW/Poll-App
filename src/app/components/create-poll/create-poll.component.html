@@ -1,0 +1,68 @@
+<div class="create-poll-container">
+    <div class="poll-card">
+        <h2 class="poll-title">Create a New Poll</h2>
+
+        <div *ngIf="errorMessage" class="error-message">
+            {{ errorMessage }}
+        </div>
+
+        <form [formGroup]="pollForm" (ngSubmit)="onSubmit()" class="poll-form">
+            <div class="form-group">
+                <label for="title" class="form-label">Poll Question</label>
+                <input type="text" id="title" formControlName="title" class="form-input"
+                    placeholder="What's your favorite programming language?">
+                <div *ngIf="pollForm.get('title')?.invalid && pollForm.get('title')?.touched" class="form-error">
+                    Question is required (min 5 characters)
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="description" class="form-label">Description (Optional)</label>
+                <textarea id="description" formControlName="description" rows="3" class="form-textarea"
+                    placeholder="Provide additional context for your poll..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <div class="options-header">
+                    <label class="form-label">Options</label>
+                    <button type="button" (click)="addOption()" class="add-option-button">
+                        Add Option
+                    </button>
+                </div>
+
+                <div formArrayName="options" class="options-list">
+                    <div *ngFor="let option of options.controls; let i = index" [formGroupName]="i" class="option-item">
+                        <input type="text" formControlName="text" class="form-input" placeholder="Option {{ i + 1 }}">
+                        <button *ngIf="i > 1" type="button" (click)="removeOption(i)" class="remove-option-button">
+                            Remove
+                        </button>
+                    </div>
+                </div>
+
+                <div *ngIf="options.invalid && (options.dirty || options.touched)" class="form-error">
+                    At least 2 options are required
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Poll Settings</label>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="allowMultiple" formControlName="allowMultiple" class="checkbox-input">
+                    <label for="allowMultiple" class="checkbox-label">Allow multiple selections</label>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="isPrivate" formControlName="isPrivate" class="checkbox-input">
+                    <label for="isPrivate" class="checkbox-label">Private poll (only accessible via link)</label>
+                </div>
+            </div>
+
+            <button type="submit" [disabled]="pollForm.invalid || isLoading" class="submit-button"
+                [class.loading]="isLoading">
+                <span *ngIf="isLoading">Creating Poll...</span>
+                <span *ngIf="!isLoading">Create Poll</span>
+            </button>
+        </form>
+    </div>
+</div>

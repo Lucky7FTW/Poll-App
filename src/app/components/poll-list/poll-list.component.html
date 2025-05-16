@@ -1,0 +1,42 @@
+<div class="poll-list-container">
+    <div class="list-header">
+        <h2 class="list-title">All Polls</h2>
+        <a routerLink="/create" class="create-button">Create New Poll</a>
+    </div>
+
+    <div *ngIf="isLoading" class="loading-container">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+    </div>
+
+    <div *ngIf="!isLoading && !errorMessage && polls.length === 0" class="empty-state">
+        <p class="empty-message">No polls found</p>
+        <a routerLink="/create" class="create-button">Create Your First Poll</a>
+    </div>
+
+    <div *ngIf="!isLoading && polls.length > 0" class="polls-grid">
+        <div *ngFor="let poll of polls" class="poll-card">
+            <div class="poll-content">
+                <div class="poll-info">
+                    <h3 class="poll-title">
+                        <a [routerLink]="['/poll', poll.id]">{{ poll.title }}</a>
+                    </h3>
+                    <p *ngIf="poll.description" class="poll-description">{{ poll.description }}</p>
+                    <div class="poll-meta">
+                        Created by {{ poll.createdBy }} · {{ poll.createdAt | date:'medium' }}
+                    </div>
+                </div>
+                <div class="poll-stats">
+                    <span class="vote-count">{{ poll.totalVotes }} votes</span>
+                    <div class="poll-actions">
+                        <a [routerLink]="['/poll', poll.id]" class="action-link">Vote</a>
+                        <a [routerLink]="['/poll', poll.id, 'results']" class="action-link">Results</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

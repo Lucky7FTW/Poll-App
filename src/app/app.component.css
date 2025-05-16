@@ -1,0 +1,48 @@
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f8f9ff;
+  background-image: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  width: 100%;
+  position: relative;
+}
+
+.main-content {
+  flex: 1 0 auto;
+  /* This ensures the main content takes up all available space */
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem;
+  animation: fadeIn 0.5s ease-in-out;
+  display: flex;
+  flex-direction: column;
+}
+
+/* For pages with minimal content, ensure they still push the footer down */
+.main-content>* {
+  flex: 1 0 auto;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fix for mobile devices to ensure content fills available space */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 1.5rem 1rem;
+    min-height: 0;
+    /* Remove fixed height calculation */
+  }
+}
