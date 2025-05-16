@@ -15,8 +15,8 @@ export const routes: Routes = [
         component: CreatePollComponent,
         //canActivate: [authGuard]
     },
-    { path: 'poll/:id', component: PollVoteComponent },
-    { path: 'poll/:id/results', component: PollResultsComponent },
+    // { path: 'poll/:id', component: PollVoteComponent },
+    // { path: 'poll/:id/results', component: PollResultsComponent },
     { path: 'login', component: LoginComponent },
     { path: '**', redirectTo: '' }
 ];
