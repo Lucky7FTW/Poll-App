@@ -11,13 +11,17 @@
         <nav class="header-nav" [class.open]="isMenuOpen">
             <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}"
                 class="nav-link">Home</a>
-            <a routerLink="/polls" routerLinkActive="active" class="nav-link">Polls</a>
+            <a routerLink="/polls" routerLinkActive="active" class="nav-link">Public Polls</a>
+            <!-- <a *ngIf="isLoggedIn" routerLink="/private-polls" routerLinkActive="active" class="nav-link">My Private
+                Polls</a> -->
+            <a routerLink="/private-polls" routerLinkActive="active" class="nav-link">My Private
+                Polls</a>
             <a routerLink="/create" routerLinkActive="active" class="nav-link">Create Poll</a>
 
             <div class="auth-section">
                 <!-- <ng-container *ngIf="authService.isLoggedIn(); else loginButton">
                     <span class="username">{{ authService.getCurrentUser()?.username }}</span> -->
-                    <button  class="logout-button">Logout</button>
+                <button class="logout-button">Logout</button>
                 <!-- </ng-container> -->
 
                 <ng-template #loginButton>
