@@ -5,6 +5,7 @@ import { CreatePollComponent } from './components/create-poll/create-poll.compon
 import { PollVoteComponent } from './components/poll-vote/poll-vote.component';
 import { PollResultsComponent } from './components/poll-results/poll-results.component';
 import { LoginComponent } from './components/login/login.component';
+import { PrivatePollsComponent } from './components/private-polls/private-polls.component';
 
 export const routes: Routes = [
 
@@ -14,6 +15,11 @@ export const routes: Routes = [
         path: 'create',
         component: CreatePollComponent,
         //canActivate: [authGuard]
+    },
+    {
+        path: "private-polls",
+        component: PrivatePollsComponent,
+        //canActivate: [authGuard],
     },
     // { path: 'poll/:id', component: PollVoteComponent },
     // { path: 'poll/:id/results', component: PollResultsComponent },
