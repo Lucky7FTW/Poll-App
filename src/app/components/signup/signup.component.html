@@ -1,0 +1,158 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <h1 class="auth-title">Create Your Account</h1>
+      <p class="auth-subtitle">
+        Join our community and start creating amazing polls today.
+      </p>
+    </div>
+
+    <form (ngSubmit)="onSubmit()" #signupForm="ngForm" class="auth-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="firstName" class="form-label">First Name</label>
+          <input
+            type="text"
+            id="firstName"
+            name="firstName"
+            [(ngModel)]="signupData.firstName"
+            required
+            class="form-input"
+            placeholder="First name"
+            autocomplete="given-name"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="lastName" class="form-label">Last Name</label>
+          <input
+            type="text"
+            id="lastName"
+            name="lastName"
+            [(ngModel)]="signupData.lastName"
+            required
+            class="form-input"
+            placeholder="Last name"
+            autocomplete="family-name"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="email" class="form-label">Email Address</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          [(ngModel)]="signupData.email"
+          required
+          email
+          class="form-input"
+          placeholder="your@email.com"
+          autocomplete="email"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Password</label>
+        <div class="password-input-container">
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            id="password"
+            name="password"
+            [(ngModel)]="signupData.password"
+            required
+            minlength="8"
+            class="form-input"
+            placeholder="Create password"
+            autocomplete="new-password"
+          />
+          <button
+            type="button"
+            class="password-toggle"
+            (click)="togglePasswordVisibility()"
+            [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+          >
+            <span
+              class="password-toggle-icon"
+              [class.show]="showPassword"
+            ></span>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword" class="form-label">Confirm Password</label>
+        <div class="password-input-container">
+          <input
+            [type]="showConfirmPassword ? 'text' : 'password'"
+            id="confirmPassword"
+            name="confirmPassword"
+            [(ngModel)]="signupData.confirmPassword"
+            required
+            class="form-input"
+            placeholder="Confirm password"
+            autocomplete="new-password"
+          />
+          <button
+            type="button"
+            class="password-toggle"
+            (click)="toggleConfirmPasswordVisibility()"
+            [attr.aria-label]="
+              showConfirmPassword ? 'Hide password' : 'Show password'
+            "
+          >
+            <span
+              class="password-toggle-icon"
+              [class.show]="showConfirmPassword"
+            ></span>
+          </button>
+        </div>
+      </div>
+
+      <div class="terms-section">
+        <label class="checkbox-container">
+          <input type="checkbox" required class="checkbox-input" />
+          <span class="checkbox-checkmark"></span>
+          <span class="checkbox-label">
+            I agree to the
+            <a href="#" class="terms-link">Terms of Service</a>
+            and
+            <a href="#" class="terms-link">Privacy Policy</a>
+          </span>
+        </label>
+      </div>
+
+      <button
+        type="submit"
+        class="auth-button primary-button"
+        [disabled]="!signupForm.form.valid"
+      >
+        Create Account
+      </button>
+    </form>
+
+    <div class="divider">
+      <span class="divider-text">or</span>
+    </div>
+
+    <div class="social-login">
+      <button type="button" class="social-button google-button">
+        <span class="social-icon google-icon"></span>
+        Continue with Google
+      </button>
+
+      <button type="button" class="social-button github-button">
+        <span class="social-icon github-icon"></span>
+        Continue with GitHub
+      </button>
+    </div>
+
+    <div class="auth-footer">
+      <p class="auth-footer-text">
+        Already have an account?
+        <a routerLink="/login" class="auth-link">Sign in here</a>
+      </p>
+    </div>
+  </div>
+</div>

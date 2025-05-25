@@ -1,5 +1,10 @@
 import { Component, inject } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
@@ -9,7 +14,7 @@ import { CommonModule } from '@angular/common';
   selector: 'app-login',
   imports: [ReactiveFormsModule, CommonModule],
   templateUrl: './login.component.html',
-  styleUrl: './login.component.css'
+  styleUrl: './login.component.css',
 })
 export class LoginComponent {
   private fb = inject(FormBuilder);
@@ -18,7 +23,7 @@ export class LoginComponent {
 
   loginForm: FormGroup = this.fb.group({
     email: ['demo@example.com', [Validators.required, Validators.email]],
-    password: ['password123', [Validators.required]]
+    password: ['password123', [Validators.required]],
   });
 
   isLoading = false;
@@ -35,7 +40,7 @@ export class LoginComponent {
     const dummyUser = {
       id: '1',
       username: 'DemoUser',
-      email: email
+      email: email,
     };
 
     // Manually set the user in the service
@@ -43,6 +48,5 @@ export class LoginComponent {
     //this.router.navigate(['/']);
 
     this.isLoading = false;
-
   }
 }
