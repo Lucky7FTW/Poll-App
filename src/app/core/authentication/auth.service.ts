@@ -4,13 +4,13 @@ import { Router } from '@angular/router';
 import { BehaviorSubject, tap } from 'rxjs';
 import { User } from './models/user.model';
 import { AuthResponseData } from './models/auth.model';
-import { authApiKey } from '../../../environment';
+import { firebaseConfig } from '../../../environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private apiKey = 'AIzaSyBLucExzC9291trJXVgbBitG6K2Rxbrr9I';
+  private apiKey = firebaseConfig.apiKey;
   user = new BehaviorSubject<User | null>(null);
 
   constructor(private http: HttpClient, private router: Router) {
