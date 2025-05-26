@@ -510,3 +510,15 @@
     font-size: 0.875rem;
   }
 }
+
+.error-message {
+  color: #dc2626;
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.loading-indicator {
+  color: #0284c7;
+  margin-top: 1rem;
+  text-align: center;
+}

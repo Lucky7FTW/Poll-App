@@ -1,27 +1,29 @@
-import { Component, HostListener } from '@angular/core';
+import {
+  Component,
+  HostListener,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../../core/authentication/auth.service';
+import { User } from '../../core/authentication/models/user.model';
 
 @Component({
   selector: 'app-header',
+  standalone: true,
   imports: [RouterLink, RouterLinkActive, CommonModule],
   templateUrl: './header.component.html',
   styleUrl: './header.component.css',
 })
 export class HeaderComponent {
+  private authService = inject(AuthService);
+
   isMenuOpen = false;
   isScrolled = false;
 
-  // Demo variable pentru a simula starea de autentificare
-  isLoggedIn = false; // Schimbă la true pentru a vedea starea de logat
-
-  // Demo user data
-  currentUser = {
-    username: 'Alexandra Popescu',
-    email: 'alexandra@example.com',
-    initials: 'AP',
-    avatar: null,
-  };
+  userSignal = signal<User | null>(null); // nou
 
   @HostListener('window:scroll', ['$event'])
   onWindowScroll() {
@@ -47,22 +49,30 @@ export class HeaderComponent {
     this.isMenuOpen = false;
   }
 
-  // Demo functions pentru testare
-  mockLogin() {
-    this.isLoggedIn = true;
-    this.closeMenu();
+  // Aflăm dacă userul este logat:
+  isLoggedIn = computed(() => !!this.userSignal());
+
+  currentUser = computed(() => this.userSignal());
+
+  ngOnInit() {
+    this.authService.user.subscribe((user) => {
+      this.userSignal.set(user);
+    });
   }
 
-  mockLogout() {
-    this.isLoggedIn = false;
+  logout() {
+    this.authService.logout();
     this.closeMenu();
   }
 
   getUserInitials(): string {
-    return this.currentUser.initials;
+    const email = this.currentUser()?.email || '';
+    const namePart = email.split('@')[0];
+    return namePart.length >= 2 ? namePart.slice(0, 2).toUpperCase() : 'U';
   }
 
   getUserFirstName(): string {
-    return this.currentUser.username.split(' ')[0];
+    const email = this.currentUser()?.email || '';
+    return email.split('@')[0];
   }
 }

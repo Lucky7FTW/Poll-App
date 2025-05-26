@@ -7,11 +7,11 @@ import {
 } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-
-//import { AuthService } from '../../services/auth.service';
+import { AuthService } from '../../core/authentication/auth.service';
 
 @Component({
   selector: 'app-login',
+  standalone: true,
   imports: [ReactiveFormsModule, CommonModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
@@ -19,11 +19,11 @@ import { CommonModule } from '@angular/common';
 export class LoginComponent {
   private fb = inject(FormBuilder);
   private router = inject(Router);
-  // authService = inject(AuthService);
+  private authService = inject(AuthService);
 
   loginForm: FormGroup = this.fb.group({
-    email: ['demo@example.com', [Validators.required, Validators.email]],
-    password: ['password123', [Validators.required]],
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required]],
   });
 
   isLoading = false;
@@ -37,16 +37,18 @@ export class LoginComponent {
 
     const { email, password } = this.loginForm.value;
 
-    const dummyUser = {
-      id: '1',
-      username: 'DemoUser',
-      email: email,
-    };
-
-    // Manually set the user in the service
-    //this.authService.setCurrentUserForDemo(dummyUser);
-    //this.router.navigate(['/']);
-
-    this.isLoading = false;
+    this.authService.login(email, password).subscribe({
+      next: (res) => {
+        console.log('Login success:', res);
+        this.isLoading = false;
+        // Navigarea e deja făcută în serviciu (`this.router.navigate(['track'])`)
+      },
+      error: (err) => {
+        console.error('Login error:', err);
+        this.isLoading = false;
+        this.errorMessage =
+          err.error?.error?.message || 'Login failed. Try again.';
+      },
+    });
   }
 }

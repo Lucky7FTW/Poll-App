@@ -10,3 +10,7 @@ export const firebaseConfig = {
   geminiApiKey: 'undefined',
   databaseURL: 'undefined',
 };
+
+export const authApiKey = {
+  key: 'AIzaSyBLucExzC9291trJXVgbBitG6K2Rxbrr9I',
+};
