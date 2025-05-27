@@ -50,10 +50,14 @@ export class PollService {
     });
   }
 
-  createPoll(poll: Omit<Poll, 'id'>): Observable<string> {
-    const pollsRef = ref(this.db, this.pollPath);
-    const newPollRef = push(pollsRef);
-    return from(set(newPollRef, poll).then(() => newPollRef.key!));
+  createPoll(
+    poll: Omit<Poll, 'id'> & Partial<Pick<Poll, 'id'>>,
+    customId?: string
+  ): Observable<string> {
+    const pollId = customId ?? push(ref(this.db, this.pollPath)).key!;
+    const pollRef = ref(this.db, `${this.pollPath}/${pollId}`);
+
+    return from(set(pollRef, { ...poll, id: pollId })).pipe(map(() => pollId));
   }
 
   updatePoll(id: string, data: Partial<Poll>): Observable<void> {
@@ -87,6 +91,44 @@ export class PollService {
           observer.complete();
         })
         .catch((err) => observer.error(err));
+    });
+  }
+
+  deletePoll(pollId: string): Observable<void> {
+    const pollRef = ref(this.db, `${this.pollPath}/${pollId}`);
+    return from(set(pollRef, null));
+  }
+
+  getPrivatePollsByUser(userEmail: string): Observable<Poll[]> {
+    return this.getAllPolls().pipe(
+      map((polls) =>
+        polls.filter((p) => p.isPrivate && p.createdBy === userEmail)
+      )
+    );
+  }
+
+  savePrivatePollForUser(userId: string, pollId: string): Observable<void> {
+    const refPath = `savedPrivatePolls/${userId}/${pollId}`;
+    return from(set(ref(this.db, refPath), true));
+  }
+
+  getSavedPrivatePollIds(userId: string): Observable<string[]> {
+    const userRef = ref(this.db, `savedPrivatePolls/${userId}`);
+    return new Observable<string[]>((observer) => {
+      onValue(
+        userRef,
+        (snapshot) => {
+          const data = snapshot.val();
+          if (!data) {
+            observer.next([]);
+            observer.complete();
+            return;
+          }
+          observer.next(Object.keys(data));
+          observer.complete();
+        },
+        (err) => observer.error(err)
+      );
     });
   }
 }
