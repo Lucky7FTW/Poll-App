@@ -12,6 +12,7 @@ import { PollService } from '../../services/poll.service';
 import { Poll, PollOption } from '../../models/poll.model';
 import { AuthService } from '../../core/authentication/auth.service';
 import { User } from '../../core/authentication/models/user.model';
+import { v4 as uuidv4 } from 'uuid';
 
 @Component({
   selector: 'app-create-poll',
@@ -74,7 +75,11 @@ export class CreatePollComponent {
 
     const formValue = this.pollForm.value;
 
-    const newPoll: Omit<Poll, 'id' | 'totalVotes'> = {
+    const isPrivate = formValue.isPrivate;
+    const customPollId = isPrivate ? `private-${uuidv4().slice(0, 10)}` : null;
+
+    const newPoll: Poll = {
+      id: customPollId ?? '', // dacă nu e privat, id-ul va fi generat în service
       title: formValue.title,
       description: formValue.description,
       options: formValue.options.map((opt: { text: string }, i: number) => ({
@@ -82,13 +87,14 @@ export class CreatePollComponent {
         text: opt.text,
       })),
       allowMultiple: formValue.allowMultiple,
-      isPrivate: formValue.isPrivate,
+      isPrivate,
       createdAt: new Date().toISOString(),
       createdBy: currentUser.email,
+      totalVotes: 0,
     };
 
-    this.pollService.createPoll({ ...newPoll, totalVotes: 0 }).subscribe({
-      next: (pollId: string) => {
+    this.pollService.createPoll(newPoll, customPollId!).subscribe({
+      next: (pollId) => {
         this.isLoading = false;
         this.router.navigate(['/poll', pollId]);
       },
