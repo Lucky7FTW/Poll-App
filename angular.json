@@ -16,7 +16,6 @@
             "outputPath": "dist/poll-app-techtrek-ntt",
             "index": "src/index.html",
             "browser": "src/main.ts",
-            "server": "src/main.server.ts",
             "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
             "assets": [
@@ -26,11 +25,7 @@
               }
             ],
             "styles": ["src/styles.css"],
-            "scripts": [],
-            "outputMode": "server",
-            "ssr": {
-              "entry": "src/server.ts"
-            }
+            "scripts": []
           },
           "configurations": {
             "production": {
@@ -67,32 +62,6 @@
             }
           },
           "defaultConfiguration": "development"
-        },
-        "server": {
-          "builder": "@angular-devkit/build-angular:server",
-          "options": {
-            "outputPath": "dist/poll-app-techtrek-ntt-server",
-            "main": "src/main.server.ts",
-            "tsConfig": "tsconfig.server.json"
-          },
-          "configurations": {
-            "production": {
-              "outputHashing": "media",
-              "sourceMap": false,
-              "extractLicenses": true
-            }
-          }
-        },
-        "prerender": {
-          "builder": "@angular-devkit/build-angular:prerender",
-          "options": {
-            "browserTarget": "poll-app-techtrekNTT:build:production",
-            "serverTarget": "poll-app-techtrekNTT:server:production",
-            "routesFile": "prerender.routes.txt"
-          },
-          "configurations": {
-            "production": {}
-          }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n"
