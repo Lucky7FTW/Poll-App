@@ -84,19 +84,19 @@ export class CreatePollComponent {
       allowMultiple: formValue.allowMultiple,
       isPrivate: formValue.isPrivate,
       createdAt: new Date().toISOString(),
-      createdBy: currentUser.email, // ← folosește email-ul userului logat
+      createdBy: currentUser.email,
     };
 
-    this.pollService
-      .createPoll({ ...newPoll, totalVotes: 0 })
-      .then((pollId) => {
+    this.pollService.createPoll({ ...newPoll, totalVotes: 0 }).subscribe({
+      next: (pollId: string) => {
         this.isLoading = false;
         this.router.navigate(['/poll', pollId]);
-      })
-      .catch((err) => {
+      },
+      error: (err) => {
         console.error('Poll creation error:', err);
         this.isLoading = false;
         this.errorMessage = 'Something went wrong while creating the poll.';
-      });
+      },
+    });
   }
 }

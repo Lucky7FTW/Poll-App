@@ -1,20 +1,31 @@
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, OnInit, inject } from '@angular/core';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
-//import { PollService } from '../../services/poll.service';
-//import { AuthService } from '../../services/auth.service';
-
 import { Poll } from '../../models/poll.model';
+import { PollService } from '../../services/poll.service';
+import { AuthService } from '../../core/authentication/auth.service';
 
 @Component({
   selector: 'app-poll-vote',
+  standalone: true,
   imports: [ReactiveFormsModule, CommonModule, RouterLink],
   templateUrl: './poll-vote.component.html',
-  styleUrl: './poll-vote.component.css'
+  styleUrl: './poll-vote.component.css',
 })
-export class PollVoteComponent {
+export class PollVoteComponent implements OnInit {
+  private pollService = inject(PollService);
+  private route = inject(ActivatedRoute);
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private fb = inject(FormBuilder);
+
   poll: Poll | null = null;
   isLoading = true;
   isSubmitting = false;
@@ -24,15 +35,9 @@ export class PollVoteComponent {
   voteForm: FormGroup;
   selectedOptions: string[] = [];
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private fb: FormBuilder,
-    // private pollService: PollService,
-    //public authService: AuthService
-  ) {
+  constructor() {
     this.voteForm = this.fb.group({
-      selectedOption: ['', Validators.required]
+      selectedOption: ['', Validators.required],
     });
   }
 
@@ -44,29 +49,41 @@ export class PollVoteComponent {
       return;
     }
 
-    // Simulate API call with timeout
-    // Generate dummy poll data
-    this.poll = {
-      id: pollId,
-      title: 'What is your favorite programming language?',
-      description: 'Please select the language you enjoy coding with the most.',
-      options: [
-        { id: 'opt-1', text: 'JavaScript' },
-        { id: 'opt-2', text: 'Python' },
-        { id: 'opt-3', text: 'Java' },
-        { id: 'opt-4', text: 'C#' },
-        { id: 'opt-5', text: 'TypeScript' }
-      ],
-      createdBy: 'JohnDoe',
-      createdAt: new Date().toISOString(),
-      allowMultiple: false,
-      isPrivate: false,
-      totalVotes: 145
-    };
+    const user = this.authService.user.getValue();
+    if (!user) {
+      this.errorMessage = 'You must be logged in to vote.';
+      this.isLoading = false;
+      return;
+    }
 
-    // this.hasVoted = this.pollService.hasUserVoted(pollId);
+    this.pollService.getPollById(pollId).subscribe({
+      next: (poll) => {
+        if (!poll) {
+          this.errorMessage = 'Poll not found';
+          this.isLoading = false;
+          return;
+        }
 
-    this.isLoading = false;
+        this.poll = poll;
+
+        // Verificăm dacă userul a mai votat
+        this.pollService.checkIfUserVoted(pollId, user.id).subscribe({
+          next: (hasVoted) => {
+            this.hasVoted = hasVoted;
+            this.isLoading = false;
+          },
+          error: (err) => {
+            console.error(err);
+            this.errorMessage = 'Failed to verify vote status.';
+            this.isLoading = false;
+          },
+        });
+      },
+      error: (err) => {
+        this.errorMessage = 'Failed to load poll.';
+        this.isLoading = false;
+      },
+    });
   }
 
   onCheckboxChange(event: Event) {
@@ -74,36 +91,40 @@ export class PollVoteComponent {
     const optionId = target.value;
 
     if (target.checked) {
-      if (!this.selectedOptions.includes(optionId)) {
-        this.selectedOptions.push(optionId);
-      }
+      this.selectedOptions.push(optionId);
     } else {
-      const index = this.selectedOptions.indexOf(optionId);
-      if (index > -1) {
-        this.selectedOptions.splice(index, 1);
-      }
+      this.selectedOptions = this.selectedOptions.filter(
+        (id) => id !== optionId
+      );
     }
   }
 
   onSubmit() {
-    if (this.voteForm.invalid && !this.poll?.allowMultiple) return;
-    if (this.poll?.allowMultiple && this.selectedOptions.length === 0) return;
+    if (!this.poll) return;
+
+    const user = this.authService.user.getValue();
+    if (!user) {
+      this.errorMessage = 'You must be logged in to vote.';
+      return;
+    }
+
+    const optionIds = this.poll.allowMultiple
+      ? this.selectedOptions
+      : [this.voteForm.get('selectedOption')?.value];
+
+    if (optionIds.length === 0) return;
 
     this.isSubmitting = true;
 
-    const voteData = {
-      pollId: this.poll?.id,
-      options: this.poll?.allowMultiple
-        ? this.selectedOptions
-        : [this.voteForm.get('selectedOption')?.value]
-    };
-
-
-    // if (this.poll) {
-    //   this.pollService.markPollAsVotedForDemo(this.poll.id);
-    // }
-
-    this.router.navigate(['/poll', this.poll?.id, 'results']);
-
+    this.pollService.submitVote(this.poll.id, user.id, optionIds).subscribe({
+      next: () => {
+        this.router.navigate(['/poll', this.poll!.id, 'results']);
+      },
+      error: (err) => {
+        console.error('Vote failed:', err);
+        this.errorMessage = 'Failed to submit vote.';
+        this.isSubmitting = false;
+      },
+    });
   }
 }
