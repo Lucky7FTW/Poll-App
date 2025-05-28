@@ -109,9 +109,19 @@
     "registerPrompt": "Don't have an account?",
     "registerLink": "Register",
     "genericError": "Login failed. Try again."
-  }
+  },
 
-  
+  "pollList": {
+    "title": "All Polls",
+    "create": "Create New Poll",
+    "empty": "No polls found",
+    "emptyCta": "Create Your First Poll",
+    "createdBy": "Created by",
+    "votes": "votes",
+    "vote": "Vote",
+    "results": "Results",
+    "loadError": "Failed to load polls."
+  }
 
 
 }
