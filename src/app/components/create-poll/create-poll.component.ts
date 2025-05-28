@@ -95,8 +95,30 @@ export class CreatePollComponent {
 
     this.pollService.createPoll(newPoll, customPollId!).subscribe({
       next: (pollId) => {
-        this.isLoading = false;
-        this.router.navigate(['/poll', pollId]);
+        // 🔹 Dacă e privat, îl salvăm și în savedPrivatePolls/{userId}/{pollId}
+        if (isPrivate) {
+          this.pollService
+            .savePrivatePollForUser(currentUser.id, pollId)
+            .subscribe({
+              next: () => {
+                this.isLoading = false;
+                this.router.navigate(['/poll', pollId]);
+              },
+              error: (err) => {
+                console.error(
+                  'Poll created, but failed to save private link:',
+                  err
+                );
+                this.errorMessage =
+                  'Poll was created but not linked to your account.';
+                this.isLoading = false;
+                this.router.navigate(['/poll', pollId]);
+              },
+            });
+        } else {
+          this.isLoading = false;
+          this.router.navigate(['/poll', pollId]);
+        }
       },
       error: (err) => {
         console.error('Poll creation error:', err);
