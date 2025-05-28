@@ -43,20 +43,36 @@ export class AuthService {
       .post<AuthResponseData>(
         `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${this.apiKey}`,
         {
-          email: email,
-          password: password,
+          email,
+          password,
           returnSecureToken: true,
         }
       )
       .pipe(
         tap((response) => {
-          this.handleAuthentication(
-            response.email,
-            response.localId,
-            response.idToken,
-            +response.expiresIn
-          );
-          this.router.navigate(['track']);
+          // 1️⃣ Verificăm dacă emailul este verificat
+          this.http
+            .post<any>(
+              `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${this.apiKey}`,
+              {
+                idToken: response.idToken,
+              }
+            )
+            .subscribe((lookupResponse) => {
+              const userInfo = lookupResponse.users?.[0];
+              if (userInfo?.emailVerified) {
+                this.handleAuthentication(
+                  response.email,
+                  response.localId,
+                  response.idToken,
+                  +response.expiresIn
+                );
+                this.router.navigate(['track']);
+              } else {
+                alert('Please verify your email before logging in.');
+                this.logout();
+              }
+            });
         })
       );
   }

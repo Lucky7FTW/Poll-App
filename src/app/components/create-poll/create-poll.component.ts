@@ -21,6 +21,7 @@ interface PollTexts {
   mustLogin: string; genericError: string;
 }
 
+
 @Component({
   selector: 'app-create-poll',
   standalone: true,
@@ -69,25 +70,56 @@ export class CreatePollComponent {
     const user = this.authService.user.getValue();
     if (!user) { return this.fail('mustLogin'); }
 
-    const v = this.pollForm.value;
-    const newPoll: Omit<Poll, 'id' | 'totalVotes'> = {
-      title: v.title,
-      description: v.description,
-      options: v.options.map((o: { text: string }, i: number) =>
-        ({ id: 'opt-' + i, text: o.text })),
-      allowMultiple: v.allowMultiple,
-      isPrivate: v.isPrivate,
+    const isPrivate = formValue.isPrivate;
+    const customPollId = isPrivate ? `private-${uuidv4().slice(0, 10)}` : null;
+
+    const newPoll: Poll = {
+      id: customPollId ?? '', // dacă nu e privat, id-ul va fi generat în service
+      title: formValue.title,
+      description: formValue.description,
+      options: formValue.options.map((opt: { text: string }, i: number) => ({
+        id: 'opt-' + i,
+        text: opt.text,
+      })),
+      allowMultiple: formValue.allowMultiple,
+      isPrivate,
       createdAt: new Date().toISOString(),
-      createdBy: user.email
+      createdBy: currentUser.email,
+      totalVotes: 0,
     };
 
-    this.pollService.createPoll({ ...newPoll, totalVotes: 0 })
-      .then(id => { this.isLoading = false; this.router.navigate(['/poll', id]); })
-      .catch(err => { console.error(err); this.fail('genericError'); });
-  }
-
-  private fail(key: keyof PollTexts) {
-    this.isLoading = false;
-    this.texts$.subscribe(t => this.errorMessage = t[key]);
+    this.pollService.createPoll(newPoll, customPollId!).subscribe({
+      next: (pollId) => {
+        // 🔹 Dacă e privat, îl salvăm și în savedPrivatePolls/{userId}/{pollId}
+        if (isPrivate) {
+          this.pollService
+            .savePrivatePollForUser(currentUser.id, pollId)
+            .subscribe({
+              next: () => {
+                this.isLoading = false;
+                this.router.navigate(['/poll', pollId]);
+              },
+              error: (err) => {
+                console.error(
+                  'Poll created, but failed to save private link:',
+                  err
+                );
+                this.errorMessage =
+                  'Poll was created but not linked to your account.';
+                this.isLoading = false;
+                this.router.navigate(['/poll', pollId]);
+              },
+            });
+        } else {
+          this.isLoading = false;
+          this.router.navigate(['/poll', pollId]);
+        }
+      },
+      error: (err) => {
+        console.error('Poll creation error:', err);
+        this.isLoading = false;
+        this.errorMessage = 'Something went wrong while creating the poll.';
+      },
+    });
   }
 }
