@@ -35,14 +35,15 @@
         </div>
 
         <div formArrayName="options" class="options-list">
-          <ng-container *ngFor="let opt of options.controls; let i = index" [formGroupName]="i">
-            <input class="form-input" type="text" formControlName="text"
+          <div *ngFor="let optCtrl of options.controls; let i = index" [formGroupName]="i">
+            <input class="form-input" type="text"
+                   formControlName="text"
                    [placeholder]="t.optionPh + ' ' + (i + 1)" />
             <button *ngIf="i > 1" type="button"
                     class="remove-option-button" (click)="removeOption(i)">
               Remove
             </button>
-          </ng-container>
+          </div>
         </div>
 
         <div class="form-error"

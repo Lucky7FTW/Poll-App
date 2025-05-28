@@ -1,7 +1,7 @@
-<div class="private-polls-container">
+<div class="private-polls-container" *ngIf="t$ | async as t">
   <div class="list-header">
-    <h1 class="list-title">Private Polls</h1>
-    <a routerLink="/create" class="create-button">Create New Poll</a>
+    <h1 class="list-title">{{ t.title }}</h1>
+    <a routerLink="/create" class="create-button">{{ t.create }}</a>
   </div>
 
   <div *ngIf="loading" class="loading-container">
@@ -14,29 +14,24 @@
 
   <ng-container *ngIf="!loading && !error">
     <div *ngIf="polls.length === 0" class="empty-state">
-      <p class="empty-message">You don't have any private polls yet.</p>
-      <p>
-        Private polls are only accessible via direct link and won't appear in
-        public listings.
-      </p>
+      <p class="empty-message">{{ t.emptyTitle }}</p>
+      <p>{{ t.emptyDesc }}</p>
       <a routerLink="/create" class="primary-button">
-        Create Your First Private Poll
+        {{ t.emptyCta }}
       </a>
     </div>
 
     <div class="add-private-link-form">
-      <label for="privateLink" class="form-label"
-        >Add Private Poll via Link</label
-      >
+      <label for="privateLink" class="form-label">{{ t.addLabel }}</label>
       <div class="input-group">
         <input
           type="text"
           id="privateLink"
           [formControl]="linkControl"
-          placeholder="https://yourapp.com/poll/private-abc123"
+          [placeholder]="t.addPlaceholder"
           class="form-input"
         />
-        <button (click)="addPrivatePollByLink()" class="add-button">Add</button>
+        <button (click)="addPrivatePollByLink()" class="add-button">{{ t.addButton }}</button>
       </div>
       <div *ngIf="addingError" class="error-message">
         {{ addingError }}
@@ -52,27 +47,19 @@
             </h2>
             <p class="poll-description">{{ poll.description }}</p>
             <p class="poll-meta">
-              Created on {{ poll.createdAt | date : "medium" }}
+              {{ t.created }} {{ poll.createdAt | date : "medium" }}
             </p>
           </div>
           <div class="poll-stats">
-            <span class="vote-count">{{ poll.totalVotes || 0 }} votes</span>
-            <span class="private-badge">Private</span>
+            <span class="vote-count">{{ poll.totalVotes || 0 }} {{ t.votes }}</span>
+            <span class="private-badge">{{ t.private }}</span>
           </div>
         </div>
         <div class="poll-actions">
-          <a [routerLink]="['/poll', poll.id]" class="action-link">Vote</a>
-          <a [routerLink]="['/poll', poll.id, 'results']" class="action-link"
-            >Results</a
-          >
-
-          <button (click)="copyPollLink(poll.id)" class="action-link copy-link">
-            Copy Link
-          </button>
-
-          <button (click)="deletePoll(poll.id)" class="action-link delete-link">
-            Delete
-          </button>
+          <a [routerLink]="['/poll', poll.id]" class="action-link">{{ t.vote }}</a>
+          <a [routerLink]="['/poll', poll.id, 'results']" class="action-link">{{ t.results }}</a>
+          <button (click)="copyPollLink(poll.id)" class="action-link copy-link">{{ t.copy }}</button>
+          <button (click)="deletePoll(poll.id)" class="action-link delete-link">{{ t.remove }}</button>
         </div>
       </div>
     </div>

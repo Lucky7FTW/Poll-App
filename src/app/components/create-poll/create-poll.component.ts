@@ -1,47 +1,31 @@
 import { Component, inject } from '@angular/core';
 import {
-  FormArray, FormBuilder, FormGroup,
-  Validators, ReactiveFormsModule
+  FormArray,
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
 } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { Observable } from 'rxjs';
-
 import { PollService } from '../../services/poll.service';
 import { Poll } from '../../models/poll.model';
 import { AuthService } from '../../core/authentication/auth.service';
-import { TextService } from '../../services/text.service';   // adjust path if needed
-
-interface PollTexts {
-  title: string; questionLabel: string; questionPh: string; questionError: string;
-  descriptionLabel: string; descriptionPh: string;
-  optionsLabel: string; addOption: string; optionPh: string; atLeastTwo: string;
-  settingsLabel: string; allowMultiple: string; isPrivate: string;
-  submitIdle: string; submitBusy: string;
-  mustLogin: string; genericError: string;
-}
-
+import { v4 as uuidv4 } from 'uuid';
 
 @Component({
   selector: 'app-create-poll',
   standalone: true,
   imports: [ReactiveFormsModule, CommonModule],
   templateUrl: './create-poll.component.html',
-  styleUrls: ['./create-poll.component.css']          // plural!
+  styleUrl: './create-poll.component.css',
 })
 export class CreatePollComponent {
-  /* ── dependencies ── */
-  private fb          = inject(FormBuilder);
-  private router      = inject(Router);
+  private fb = inject(FormBuilder);
+  private router = inject(Router);
   private pollService = inject(PollService);
   private authService = inject(AuthService);
-  private textService = inject(TextService);
 
-  /* ── i18n stream ── */
-  readonly texts$: Observable<PollTexts> =
-    this.textService.section<PollTexts>('poll');
-
-  /* ── reactive form ── */
   pollForm: FormGroup = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(5)]],
     description: [''],
@@ -50,31 +34,52 @@ export class CreatePollComponent {
       Validators.minLength(2)
     ),
     allowMultiple: [false],
-    isPrivate:     [false]
+    isPrivate: [false],
   });
 
-  isLoading    = false;
+  isLoading = false;
   errorMessage = '';
 
-  /* helpers */
-  get options(): FormArray { return this.pollForm.get('options') as FormArray; }
-  private createOption() { return this.fb.group({ text: ['', Validators.required] }); }
-  addOption() { this.options.push(this.createOption()); }
-  removeOption(i: number) { this.options.removeAt(i); }
+  // STRONGLY TYPED GETTER
+  get options(): FormArray<FormGroup> {
+    return this.pollForm.get('options') as FormArray<FormGroup>;
+  }
 
-  /* submit */
-  onSubmit() {
+  createOption(): FormGroup {
+    return this.fb.group({
+      text: ['', Validators.required],
+    });
+  }
+
+  addOption(): void {
+    this.options.push(this.createOption());
+  }
+
+  removeOption(index: number): void {
+    this.options.removeAt(index);
+  }
+
+  onSubmit(): void {
     if (this.pollForm.invalid) return;
-    this.isLoading = true; this.errorMessage = '';
 
-    const user = this.authService.user.getValue();
-    if (!user) { return this.fail('mustLogin'); }
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    const currentUser = this.authService.user.getValue();
+
+    if (!currentUser) {
+      this.isLoading = false;
+      this.errorMessage = 'You must be logged in to create a poll.';
+      return;
+    }
+
+    const formValue = this.pollForm.value;
 
     const isPrivate = formValue.isPrivate;
     const customPollId = isPrivate ? `private-${uuidv4().slice(0, 10)}` : null;
 
     const newPoll: Poll = {
-      id: customPollId ?? '', // dacă nu e privat, id-ul va fi generat în service
+      id: customPollId ?? '',
       title: formValue.title,
       description: formValue.description,
       options: formValue.options.map((opt: { text: string }, i: number) => ({
@@ -90,26 +95,19 @@ export class CreatePollComponent {
 
     this.pollService.createPoll(newPoll, customPollId!).subscribe({
       next: (pollId) => {
-        // 🔹 Dacă e privat, îl salvăm și în savedPrivatePolls/{userId}/{pollId}
         if (isPrivate) {
-          this.pollService
-            .savePrivatePollForUser(currentUser.id, pollId)
-            .subscribe({
-              next: () => {
-                this.isLoading = false;
-                this.router.navigate(['/poll', pollId]);
-              },
-              error: (err) => {
-                console.error(
-                  'Poll created, but failed to save private link:',
-                  err
-                );
-                this.errorMessage =
-                  'Poll was created but not linked to your account.';
-                this.isLoading = false;
-                this.router.navigate(['/poll', pollId]);
-              },
-            });
+          this.pollService.savePrivatePollForUser(currentUser.id, pollId).subscribe({
+            next: () => {
+              this.isLoading = false;
+              this.router.navigate(['/poll', pollId]);
+            },
+            error: (err) => {
+              console.error('Poll created, but failed to save private link:', err);
+              this.errorMessage = 'Poll was created but not linked to your account.';
+              this.isLoading = false;
+              this.router.navigate(['/poll', pollId]);
+            },
+          });
         } else {
           this.isLoading = false;
           this.router.navigate(['/poll', pollId]);

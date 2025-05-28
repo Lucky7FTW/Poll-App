@@ -121,6 +121,38 @@
     "vote": "Vote",
     "results": "Results",
     "loadError": "Failed to load polls."
+  },
+
+  "privatePolls": {
+    "title": "Private Polls",
+    "create": "Create New Poll",
+    "emptyTitle": "You don't have any private polls yet.",
+    "emptyDesc": "Private polls are only accessible via direct link and won't appear in public listings.",
+    "emptyCta": "Create Your First Private Poll",
+    "addLabel": "Add Private Poll via Link",
+    "addPlaceholder": "https://yourapp.com/poll/private-abc123",
+    "addButton": "Add",
+    "loading": "Loading...",
+    "mustLogin": "You must be logged in to view private polls.",
+    "loadError": "Failed to load private polls.",
+    "savedListError": "Failed to get saved poll list.",
+    "copySuccess": "Link copied to clipboard!",
+    "copyError": "Failed to copy link.",
+    "deleteConfirm": "Are you sure you want to delete this poll?",
+    "deleteError": "Failed to delete poll.",
+    "addRequired": "Please enter a link.",
+    "addInvalid": "Invalid link format.",
+    "addNotFound": "Poll not found.",
+    "addNotPrivate": "This is not a private poll.",
+    "addFailed": "Failed to save poll link.",
+    "fetchFailed": "Failed to fetch poll.",
+    "votes": "votes",
+    "private": "Private",
+    "vote": "Vote",
+    "results": "Results",
+    "remove": "Delete",
+    "copy": "Copy Link",
+    "created": "Created on"
   }
 
 
