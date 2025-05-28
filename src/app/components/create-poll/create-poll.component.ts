@@ -12,6 +12,9 @@ import { PollService } from '../../services/poll.service';
 import { Poll } from '../../models/poll.model';
 import { AuthService } from '../../core/authentication/auth.service';
 import { v4 as uuidv4 } from 'uuid';
+import { Observable } from 'rxjs';
+import { TextService } from '../../services/text.service';
+import { PollTexts } from '../../models/poll-texts.interface'; // adjust path if needed
 
 @Component({
   selector: 'app-create-poll',
@@ -25,6 +28,9 @@ export class CreatePollComponent {
   private router = inject(Router);
   private pollService = inject(PollService);
   private authService = inject(AuthService);
+  private textService = inject(TextService);
+
+  readonly texts$: Observable<PollTexts> = this.textService.section<PollTexts>('poll');
 
   pollForm: FormGroup = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(5)]],
@@ -40,7 +46,6 @@ export class CreatePollComponent {
   isLoading = false;
   errorMessage = '';
 
-  // STRONGLY TYPED GETTER
   get options(): FormArray<FormGroup> {
     return this.pollForm.get('options') as FormArray<FormGroup>;
   }
@@ -69,6 +74,7 @@ export class CreatePollComponent {
 
     if (!currentUser) {
       this.isLoading = false;
+      // If you want a translated error here, use the texts$ observable in the template
       this.errorMessage = 'You must be logged in to create a poll.';
       return;
     }
