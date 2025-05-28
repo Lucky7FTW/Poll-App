@@ -1,25 +1,42 @@
 import { Component, inject } from '@angular/core';
 import {
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
+  FormBuilder, FormGroup, ReactiveFormsModule, Validators
 } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/authentication/auth.service';
+import { TextService } from '../../services/text.service'; // Adjust path as needed
+import { Observable } from 'rxjs';
+
+interface LoginTexts {
+  title: string;
+  emailLabel: string;
+  emailPh: string;
+  emailError: string;
+  passwordLabel: string;
+  passwordPh: string;
+  passwordError: string;
+  submitIdle: string;
+  submitBusy: string;
+  registerPrompt: string;
+  registerLink: string;
+  genericError: string;
+}
 
 @Component({
   selector: 'app-login',
   standalone: true,
   imports: [ReactiveFormsModule, CommonModule],
   templateUrl: './login.component.html',
-  styleUrl: './login.component.css',
+  styleUrls: ['./login.component.css'],
 })
 export class LoginComponent {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private authService = inject(AuthService);
+  private textService = inject(TextService);
+
+  readonly t$: Observable<LoginTexts> = this.textService.section<LoginTexts>('login');
 
   loginForm: FormGroup = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -39,15 +56,15 @@ export class LoginComponent {
 
     this.authService.login(email, password).subscribe({
       next: (res) => {
-        console.log('Login success:', res);
         this.isLoading = false;
-        // Navigarea e deja făcută în serviciu (`this.router.navigate(['track'])`)
+        // Navigate after login if not handled by AuthService
       },
       error: (err) => {
-        console.error('Login error:', err);
         this.isLoading = false;
-        this.errorMessage =
-          err.error?.error?.message || 'Login failed. Try again.';
+        this.t$.subscribe(t => {
+          this.errorMessage =
+            err.error?.error?.message || t.genericError;
+        }).unsubscribe();
       },
     });
   }

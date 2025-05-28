@@ -94,8 +94,24 @@
         }
       ]
     }
+  },
+
+  "login": {
+    "title": "Login",
+    "emailLabel": "Email",
+    "emailPh": "your@email.com",
+    "emailError": "Valid email is required",
+    "passwordLabel": "Password",
+    "passwordPh": "••••••••",
+    "passwordError": "Password is required",
+    "submitIdle": "Login",
+    "submitBusy": "Logging in...",
+    "registerPrompt": "Don't have an account?",
+    "registerLink": "Register",
+    "genericError": "Login failed. Try again."
   }
 
   
+
 
 }
