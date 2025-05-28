@@ -1,0 +1,25 @@
+{
+  "poll": {
+    "title":            "Create a New Poll",
+    "questionLabel":    "Poll Question",
+    "questionPh":       "What's your favorite programming language?",
+    "questionError":    "Question is required (min 5 characters)",
+
+    "descriptionLabel": "Description (Optional)",
+    "descriptionPh":    "Provide additional context for your poll…",
+
+    "optionsLabel":     "Options",
+    "addOption":        "Add Option",
+    "optionPh":         "Option",
+    "atLeastTwo":       "At least 2 options are required",
+
+    "settingsLabel":    "Poll Settings",
+    "allowMultiple":    "Allow multiple selections",
+    "isPrivate":        "Private poll (only accessible via link)",
+
+    "submitIdle":       "Create Poll",
+    "submitBusy":       "Creating Poll…",
+    "mustLogin":        "You must be logged in to create a poll.",
+    "genericError":     "Something went wrong while creating the poll."
+  }
+}
