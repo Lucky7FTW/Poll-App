@@ -1,8 +1,35 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { AuthService } from '../../core/authentication/auth.service'; // Ajustează calea dacă e diferită
+import { AuthService } from '../../core/authentication/auth.service';
+import { TextService } from '../../services/text.service';
+import { Observable, firstValueFrom } from 'rxjs';
+
+interface SignupTexts {
+  title: string;
+  subtitle: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  showPassword: string;
+  hidePassword: string;
+  terms: string;
+  termsLink: string;
+  privacy: string;
+  privacyLink: string;
+  createAccount: string;
+  or: string;
+  continueWithGoogle: string;
+  continueWithGitHub: string;
+  alreadyHaveAccount: string;
+  signIn: string;
+  loading: string;
+  passwordMismatch: string;
+  signupFailed: string;
+}
 
 @Component({
   selector: 'app-signup',
@@ -12,7 +39,10 @@ import { AuthService } from '../../core/authentication/auth.service'; // Ajustea
   styleUrls: ['./signup.component.css'],
 })
 export class SignupComponent {
-  constructor(private authService: AuthService, private router: Router) {}
+  // Use Angular inject() for standalone components
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private textService = inject(TextService);
 
   signupData = {
     firstName: '',
@@ -27,15 +57,16 @@ export class SignupComponent {
   errorMessage = '';
   isLoading = false;
 
-  onSubmit() {
-    console.log('Submit triggered'); // Verificare 1
-    console.log('Form data:', this.signupData); // Verificare 2
+  // Safe to use as property!
+  readonly t$: Observable<SignupTexts> = this.textService.section<SignupTexts>('signup');
+
+  async onSubmit() {
+    const t = await firstValueFrom(this.t$);
 
     this.errorMessage = '';
 
     if (this.signupData.password !== this.signupData.confirmPassword) {
-      this.errorMessage = "Passwords don't match.";
-      console.warn(this.errorMessage); // Verificare 3
+      this.errorMessage = t.passwordMismatch;
       return;
     }
 
@@ -44,16 +75,14 @@ export class SignupComponent {
     this.authService
       .signup(this.signupData.email, this.signupData.password)
       .subscribe({
-        next: (res) => {
-          console.log('Signup successful:', res); // Verificare 4
+        next: () => {
           this.isLoading = false;
-          this.router.navigate(['/login']); // sau altă pagină
+          this.router.navigate(['/login']);
         },
         error: (err) => {
-          console.error('Signup error:', err); // Verificare 5
           this.isLoading = false;
           this.errorMessage =
-            err.error?.error?.message || 'Signup failed. Try again.';
+            err.error?.error?.message || t.signupFailed;
         },
       });
   }

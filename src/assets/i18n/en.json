@@ -153,6 +153,27 @@
     "remove": "Delete",
     "copy": "Copy Link",
     "created": "Created on"
+  },
+    "signup": {
+    "title": "Create Your Account",
+    "subtitle": "Join our community and start creating amazing polls today.",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "Email Address",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "terms": "I agree to the <a href='#' class='terms-link'>Terms of Service</a> and <a href='#' class='terms-link'>Privacy Policy</a>",
+    "createAccount": "Create Account",
+    "or": "or",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithGitHub": "Continue with GitHub",
+    "alreadyHaveAccount": "Already have an account?",
+    "signIn": "Sign in here",
+    "loading": "Creating your account...",
+    "passwordMismatch": "Passwords don't match.",
+    "signupFailed": "Signup failed. Try again."
   }
 
 

@@ -1,16 +1,14 @@
-<div class="auth-container">
+<div class="auth-container" *ngIf="t$ | async as t">
   <div class="auth-card">
     <div class="auth-header">
-      <h1 class="auth-title">Create Your Account</h1>
-      <p class="auth-subtitle">
-        Join our community and start creating amazing polls today.
-      </p>
+      <h1 class="auth-title">{{ t.title }}</h1>
+      <p class="auth-subtitle">{{ t.subtitle }}</p>
     </div>
 
     <form (ngSubmit)="onSubmit()" #signupForm="ngForm" class="auth-form">
       <div class="form-row">
         <div class="form-group">
-          <label for="firstName" class="form-label">First Name</label>
+          <label for="firstName" class="form-label">{{ t.firstName }}</label>
           <input
             type="text"
             id="firstName"
@@ -18,13 +16,13 @@
             [(ngModel)]="signupData.firstName"
             required
             class="form-input"
-            placeholder="First name"
+            [placeholder]="t.firstName"
             autocomplete="given-name"
           />
         </div>
 
         <div class="form-group">
-          <label for="lastName" class="form-label">Last Name</label>
+          <label for="lastName" class="form-label">{{ t.lastName }}</label>
           <input
             type="text"
             id="lastName"
@@ -32,14 +30,14 @@
             [(ngModel)]="signupData.lastName"
             required
             class="form-input"
-            placeholder="Last name"
+            [placeholder]="t.lastName"
             autocomplete="family-name"
           />
         </div>
       </div>
 
       <div class="form-group">
-        <label for="email" class="form-label">Email Address</label>
+        <label for="email" class="form-label">{{ t.email }}</label>
         <input
           type="email"
           id="email"
@@ -48,13 +46,13 @@
           required
           email
           class="form-input"
-          placeholder="your@email.com"
+          [placeholder]="t.email"
           autocomplete="email"
         />
       </div>
 
       <div class="form-group">
-        <label for="password" class="form-label">Password</label>
+        <label for="password" class="form-label">{{ t.password }}</label>
         <div class="password-input-container">
           <input
             [type]="showPassword ? 'text' : 'password'"
@@ -64,25 +62,22 @@
             required
             minlength="8"
             class="form-input"
-            placeholder="Create password"
+            [placeholder]="t.password"
             autocomplete="new-password"
           />
           <button
             type="button"
             class="password-toggle"
             (click)="togglePasswordVisibility()"
-            [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+            [attr.aria-label]="showPassword ? t.hidePassword : t.showPassword"
           >
-            <span
-              class="password-toggle-icon"
-              [class.show]="showPassword"
-            ></span>
+            <span class="password-toggle-icon" [class.show]="showPassword"></span>
           </button>
         </div>
       </div>
 
       <div class="form-group">
-        <label for="confirmPassword" class="form-label">Confirm Password</label>
+        <label for="confirmPassword" class="form-label">{{ t.confirmPassword }}</label>
         <div class="password-input-container">
           <input
             [type]="showConfirmPassword ? 'text' : 'password'"
@@ -91,21 +86,16 @@
             [(ngModel)]="signupData.confirmPassword"
             required
             class="form-input"
-            placeholder="Confirm password"
+            [placeholder]="t.confirmPassword"
             autocomplete="new-password"
           />
           <button
             type="button"
             class="password-toggle"
             (click)="toggleConfirmPasswordVisibility()"
-            [attr.aria-label]="
-              showConfirmPassword ? 'Hide password' : 'Show password'
-            "
+            [attr.aria-label]="showConfirmPassword ? t.hidePassword : t.showPassword"
           >
-            <span
-              class="password-toggle-icon"
-              [class.show]="showConfirmPassword"
-            ></span>
+            <span class="password-toggle-icon" [class.show]="showConfirmPassword"></span>
           </button>
         </div>
       </div>
@@ -114,12 +104,7 @@
         <label class="checkbox-container">
           <input type="checkbox" required class="checkbox-input" />
           <span class="checkbox-checkmark"></span>
-          <span class="checkbox-label">
-            I agree to the
-            <a href="#" class="terms-link">Terms of Service</a>
-            and
-            <a href="#" class="terms-link">Privacy Policy</a>
-          </span>
+          <span class="checkbox-label" [innerHTML]="t.terms"></span>
         </label>
       </div>
 
@@ -128,37 +113,37 @@
         class="auth-button primary-button"
         [disabled]="!signupForm.form.valid"
       >
-        Create Account
+        {{ t.createAccount }}
       </button>
     </form>
 
     <div class="divider">
-      <span class="divider-text">or</span>
+      <span class="divider-text">{{ t.or }}</span>
     </div>
 
     <div class="social-login">
       <button type="button" class="social-button google-button">
         <span class="social-icon google-icon"></span>
-        Continue with Google
+        {{ t.continueWithGoogle }}
       </button>
 
       <button type="button" class="social-button github-button">
         <span class="social-icon github-icon"></span>
-        Continue with GitHub
+        {{ t.continueWithGitHub }}
       </button>
     </div>
 
     <div class="auth-footer">
       <p class="auth-footer-text">
-        Already have an account?
-        <a routerLink="/login" class="auth-link">Sign in here</a>
+        {{ t.alreadyHaveAccount }}
+        <a routerLink="/login" class="auth-link">{{ t.signIn }}</a>
       </p>
     </div>
   </div>
-</div>
 
-<div *ngIf="errorMessage" class="error-message">
-  {{ errorMessage }}
-</div>
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
 
-<div *ngIf="isLoading" class="loading-indicator">Creating your account...</div>
+  <div *ngIf="isLoading" class="loading-indicator">{{ t.loading }}</div>
+</div>
