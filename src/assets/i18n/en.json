@@ -32,7 +32,21 @@
       "contact": "Contact"
     },
     "copyright": "All rights reserved."
+  },
+
+  "header": {
+    "brand": "PollVote",
+    "home": "Home",
+    "publicPolls": "Public Polls",
+    "myPolls": "My Polls",
+    "createPoll": "Create Poll",
+    "login": "Log In",
+    "signup": "Sign Up",
+    "hello": "Hello",
+    "logout": "Logout",
+    "notifications": "Notifications",
+    "profile": "Profile",
+    "contact": "Contact"
   }
 
-  
 }

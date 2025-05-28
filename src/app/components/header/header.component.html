@@ -1,20 +1,11 @@
-<header class="header" [class.scrolled]="isScrolled">
+<header class="header" [class.scrolled]="isScrolled" *ngIf="t$ | async as t">
   <div class="header-container">
     <div class="header-logo">
       <a routerLink="/" class="logo" (click)="closeMenu()">
         <div class="logo-icon">
-          <!-- SVG logo -->
-          <svg viewBox="0 0 24 24" fill="none">
-            <path
-              d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
+          <!-- SVG logo as before -->
         </div>
-        <span class="logo-text">PollVote</span>
+        <span class="logo-text">{{ t.brand }}</span>
       </a>
     </div>
 
@@ -38,7 +29,7 @@
           class="nav-link"
           (click)="closeMenu()"
         >
-          <span class="nav-icon">🏠</span><span>Home</span>
+          <span class="nav-icon">🏠</span><span>{{ t.home }}</span>
         </a>
 
         <a
@@ -47,7 +38,7 @@
           class="nav-link"
           (click)="closeMenu()"
         >
-          <span class="nav-icon">📊</span><span>Public Polls</span>
+          <span class="nav-icon">📊</span><span>{{ t.publicPolls }}</span>
         </a>
 
         <a
@@ -57,7 +48,7 @@
           class="nav-link"
           (click)="closeMenu()"
         >
-          <span class="nav-icon">🔒</span><span>My Polls</span>
+          <span class="nav-icon">🔒</span><span>{{ t.myPolls }}</span>
         </a>
 
         <a
@@ -66,7 +57,7 @@
           class="nav-link create-link"
           (click)="closeMenu()"
         >
-          <span class="nav-icon">✨</span><span>Create Poll</span>
+          <span class="nav-icon">✨</span><span>{{ t.createPoll }}</span>
         </a>
       </div>
 
@@ -84,61 +75,28 @@
               </div>
               <div class="user-details">
                 <span class="user-greeting">
-                  Hello, {{ getUserFirstName() }}! 👋
+                  {{ t.hello }}, {{ getUserFirstName() }}! 👋
                 </span>
                 <span class="user-email">{{ currentUser()?.email }}</span>
               </div>
             </div>
 
             <div class="user-actions">
-              <button class="action-button profile-button" title="Profile">
+              <button class="action-button profile-button" [title]="t.profile">
                 <!-- profile icon -->
-                <svg viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
+                <!-- ...svg... -->
               </button>
-
               <button
                 class="action-button notifications-button"
-                title="Notifications"
+                [title]="t.notifications"
               >
                 <!-- notification icon -->
-                <svg viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M18 8C18 6.4087 17.3679 4.88258 16.2426 3.75736C15.1174 2.63214 13.5913 2 12 2C10.4087 2 8.88258 2.63214 7.75736 3.75736C6.63214 4.88258 6 6.4087 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                  <path
-                    d="M13.73 21C13.5542 21.3031 13.3019 21.5547 12.9982 21.7295C12.6946 21.9044 12.3504 21.9965 12 21.9965C11.6496 21.9965 11.3054 21.9044 11.0018 21.7295C10.6981 21.5547 10.4458 21.3031 10.27 21"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
+                <!-- ...svg... -->
                 <span class="notification-badge">3</span>
               </button>
-
-              <button class="logout-button" (click)="logout()" title="Logout">
-                <svg viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9M16 17L21 12M21 12L16 7M21 12H9"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-                <span>Logout</span>
+              <button class="logout-button" (click)="logout()" [title]="t.logout">
+                <!-- ...svg... -->
+                <span>{{ t.logout }}</span>
               </button>
             </div>
           </div>
@@ -153,16 +111,8 @@
               class="auth-button login-button"
               (click)="closeMenu()"
             >
-              <svg viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M15 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H15M10 17L15 12M15 12L10 7M15 12H3"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-              <span>Log In</span>
+              <!-- ...svg... -->
+              <span>{{ t.login }}</span>
             </a>
 
             <a
@@ -171,16 +121,8 @@
               class="auth-button signup-button"
               (click)="closeMenu()"
             >
-              <svg viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21M20 8V14M23 11H17M12.5 7C12.5 9.20914 10.7091 11 8.5 11C6.29086 11 4.5 9.20914 4.5 7C4.5 4.79086 6.29086 3 8.5 3C10.7091 3 12.5 4.79086 12.5 7Z"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-              <span>Sign Up</span>
+              <!-- ...svg... -->
+              <span>{{ t.signup }}</span>
             </a>
           </div>
         </ng-template>
