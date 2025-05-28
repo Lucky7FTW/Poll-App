@@ -21,5 +21,18 @@
     "submitBusy":       "Creating Poll…",
     "mustLogin":        "You must be logged in to create a poll.",
     "genericError":     "Something went wrong while creating the poll."
+  },
+
+  "footer": {
+    "brand": "PollVote",
+    "subtitle": "Create and share polls easily",
+    "links": {
+      "terms": "Terms",
+      "privacy": "Privacy",
+      "contact": "Contact"
+    },
+    "copyright": "All rights reserved."
   }
+
+  
 }

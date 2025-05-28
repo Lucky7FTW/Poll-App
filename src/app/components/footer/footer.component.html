@@ -1,18 +1,18 @@
-<footer class="footer">
+<footer class="footer" *ngIf="t$ | async as t">
   <div class="footer-container">
     <div class="footer-content">
       <div class="footer-brand">
-        <h3 class="footer-title">PollVote</h3>
-        <p class="footer-subtitle">Create and share polls easily</p>
+        <h3 class="footer-title">{{ t.brand }}</h3>
+        <p class="footer-subtitle">{{ t.subtitle }}</p>
       </div>
       <div class="footer-links">
-        <a href="#" class="footer-link">Terms</a>
-        <a href="#" class="footer-link">Privacy</a>
-        <a href="#" class="footer-link">Contact</a>
+        <a href="#" class="footer-link">{{ t.links.terms }}</a>
+        <a href="#" class="footer-link">{{ t.links.privacy }}</a>
+        <a href="#" class="footer-link">{{ t.links.contact }}</a>
       </div>
     </div>
     <div class="footer-copyright">
-      &copy; {{ currentYear }} PollVote. All rights reserved.
+      &copy; {{ currentYear }} {{ t.brand }}. {{ t.copyright }}
     </div>
   </div>
 </footer>
