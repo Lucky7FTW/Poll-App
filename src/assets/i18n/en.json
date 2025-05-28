@@ -47,6 +47,55 @@
     "notifications": "Notifications",
     "profile": "Profile",
     "contact": "Contact"
+  },
+
+  "home": {
+    "heroTitle": "Create and Share Polls Easily",
+    "heroSubtitle": "Get instant feedback from your audience with our simple and powerful polling platform.",
+    "createPoll": "Create a Poll",
+    "browsePolls": "Browse Polls",
+    "features": [
+      {
+        "title": "Create Polls",
+        "description": "Create custom polls with multiple options in seconds. Add descriptions and customize settings to suit your needs."
+      },
+      {
+        "title": "Share Instantly",
+        "description": "Share your polls with anyone via a simple link. No need for recipients to create an account to vote."
+      },
+      {
+        "title": "Analyze Results",
+        "description": "View real-time results with beautiful charts and detailed breakdowns of all votes."
+      }
+    ],
+    "howItWorks": {
+      "title": "How It Works",
+      "subtitle": "Creating and sharing polls has never been easier. Follow these simple steps to get started.",
+      "steps": [
+        {
+          "number": "1",
+          "title": "Create Account",
+          "description": "Sign up for a free account to create and manage your polls."
+        },
+        {
+          "number": "2",
+          "title": "Create Poll",
+          "description": "Add your question, options, and customize settings."
+        },
+        {
+          "number": "3",
+          "title": "Share Link",
+          "description": "Share the generated link with your audience."
+        },
+        {
+          "number": "4",
+          "title": "View Results",
+          "description": "Watch the results come in with real-time updates."
+        }
+      ]
+    }
   }
+
+  
 
 }

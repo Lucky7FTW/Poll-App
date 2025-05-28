@@ -1,82 +1,32 @@
-<div class="home-container">
-    <section class="hero-section">
-        <h1 class="hero-title">Create and Share Polls Easily</h1>
-        <p class="hero-subtitle">
-            Get instant feedback from your audience with our simple and powerful polling platform.
-        </p>
-        <div class="hero-buttons">
-            <a routerLink="/create" class="primary-button">Create a Poll</a>
-            <a routerLink="/polls" class="secondary-button">Browse Polls</a>
-        </div>
-    </section>
+<div class="home-container" *ngIf="t$ | async as t">
+  <section class="hero-section">
+    <h1 class="hero-title">{{ t.heroTitle }}</h1>
+    <p class="hero-subtitle">{{ t.heroSubtitle }}</p>
+    <div class="hero-buttons">
+      <a routerLink="/create" class="primary-button">{{ t.createPoll }}</a>
+      <a routerLink="/polls" class="secondary-button">{{ t.browsePolls }}</a>
+    </div>
+  </section>
 
-    <section class="features-section">
-        <div class="feature-card">
-            <div class="feature-icon create-icon"></div>
-            <h3 class="feature-title">Create Polls</h3>
-            <p class="feature-description">
-                Create custom polls with multiple options in seconds. Add descriptions and customize settings to suit
-                your needs.
-            </p>
-        </div>
+  <section class="features-section">
+    <div class="feature-card" *ngFor="let feature of t.features">
+      <div class="feature-icon" [ngClass]="feature.title.toLowerCase().split(' ')[0] + '-icon'"></div>
+      <h3 class="feature-title">{{ feature.title }}</h3>
+      <p class="feature-description">{{ feature.description }}</p>
+    </div>
+  </section>
 
-        <div class="feature-card">
-            <div class="feature-icon share-icon"></div>
-            <h3 class="feature-title">Share Instantly</h3>
-            <p class="feature-description">
-                Share your polls with anyone via a simple link. No need for recipients to create an account to vote.
-            </p>
-        </div>
-
-        <div class="feature-card">
-            <div class="feature-icon analyze-icon"></div>
-            <h3 class="feature-title">Analyze Results</h3>
-            <p class="feature-description">
-                View real-time results with beautiful charts and detailed breakdowns of all votes.
-            </p>
-        </div>
-    </section>
-
-    <section class="how-it-works-section">
-        <div class="section-header">
-            <h2 class="section-title">How It Works</h2>
-            <p class="section-subtitle">
-                Creating and sharing polls has never been easier. Follow these simple steps to get started.
-            </p>
-        </div>
-
-        <div class="steps-container">
-            <div class="step-item">
-                <div class="step-number">1</div>
-                <h3 class="step-title">Create Account</h3>
-                <p class="step-description">
-                    Sign up for a free account to create and manage your polls.
-                </p>
-            </div>
-
-            <div class="step-item">
-                <div class="step-number">2</div>
-                <h3 class="step-title">Create Poll</h3>
-                <p class="step-description">
-                    Add your question, options, and customize settings.
-                </p>
-            </div>
-
-            <div class="step-item">
-                <div class="step-number">3</div>
-                <h3 class="step-title">Share Link</h3>
-                <p class="step-description">
-                    Share the generated link with your audience.
-                </p>
-            </div>
-
-            <div class="step-item">
-                <div class="step-number">4</div>
-                <h3 class="step-title">View Results</h3>
-                <p class="step-description">
-                    Watch the results come in with real-time updates.
-                </p>
-            </div>
-        </div>
-    </section>
+  <section class="how-it-works-section">
+    <div class="section-header">
+      <h2 class="section-title">{{ t.howItWorks.title }}</h2>
+      <p class="section-subtitle">{{ t.howItWorks.subtitle }}</p>
+    </div>
+    <div class="steps-container">
+      <div class="step-item" *ngFor="let step of t.howItWorks.steps">
+        <div class="step-number">{{ step.number }}</div>
+        <h3 class="step-title">{{ step.title }}</h3>
+        <p class="step-description">{{ step.description }}</p>
+      </div>
+    </div>
+  </section>
 </div>
