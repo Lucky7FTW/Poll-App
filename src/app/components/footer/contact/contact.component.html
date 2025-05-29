@@ -1,0 +1,57 @@
+<div class="contact-container">
+    <div class="contact-card">
+        <div class="page-header">
+            <h1 class="page-title">Contact Us</h1>
+            <button  routerLink="" class="home-button">
+                <span class="home-icon">🏠</span>
+                Back to Home
+            </button>
+        </div>
+
+        <div class="contact-content">
+            <div class="contact-intro">
+                <h2 class="section-title">Get in Touch</h2>
+                <p class="intro-text">
+                    Have questions, suggestions, or need support? We'd love to hear from you!
+                    Our dedicated team is here to help you make the most of PollVote.
+                </p>
+            </div>
+
+            <div class="team-section">
+                <h3 class="team-title">Our Team</h3>
+                <div class="team-grid">
+                    <div *ngFor="let member of teamMembers" class="team-member">
+                        <div class="member-info">
+                            <h4 class="member-name">{{ member.name }}</h4>
+                            <p class="member-role">{{ member.role }}</p>
+                            <button (click)="sendEmail(member.email)" class="email-button">
+                                <span class="email-icon">✉️</span>
+                                {{ member.email }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="contact-info">
+                <h3 class="info-title">Other Ways to Reach Us</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-icon">🌐</div>
+                        <div class="info-content">
+                            <h4>Website</h4>
+                            <p>Visit our main website for more information about our services</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-icon">💬</div>
+                        <div class="info-content">
+                            <h4>Feedback</h4>
+                            <p>We value your feedback and suggestions for improving PollVote</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
