@@ -9,6 +9,7 @@ import { PrivatePollsComponent } from './components/private-polls/private-polls.
 import { SignupComponent } from './components/signup/signup.component';
 import { ContactComponent } from './components/footer/contact/contact.component';
 import { TermsComponent } from './components/footer/terms/terms.component';
+import { PrivacyComponent } from './components/footer/privacy/privacy.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -29,5 +30,6 @@ export const routes: Routes = [
   { path: 'signup', component: SignupComponent },
   { path: 'contact', component: ContactComponent },
   { path: 'terms', component: TermsComponent },
+  { path: 'privacy', component: PrivacyComponent },
   { path: '**', redirectTo: '' },
 ];
