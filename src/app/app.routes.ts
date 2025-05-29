@@ -8,6 +8,7 @@ import { LoginComponent } from './components/login/login.component';
 import { PrivatePollsComponent } from './components/private-polls/private-polls.component';
 import { SignupComponent } from './components/signup/signup.component';
 import { ContactComponent } from './components/footer/contact/contact.component';
+import { TermsComponent } from './components/footer/terms/terms.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -27,5 +28,6 @@ export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'signup', component: SignupComponent },
   { path: 'contact', component: ContactComponent },
+  { path: 'terms', component: TermsComponent },
   { path: '**', redirectTo: '' },
 ];
