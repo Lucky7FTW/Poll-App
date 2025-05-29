@@ -38,7 +38,7 @@ export class UserProfileComponent {
   // <!-- <div *ngIf="(userPolls$ | async)?.length === 0" class="empty-state"> --> DATELE care trebuie sa fie  
   //              <div *ngIf="polls.length === 0" class="empty-state"> DATE MOCK
 
-  
+
   polls: Poll[] = []; //asta e pus pentru mock data(ca sa se poata vedea designul) ca sa pot apela din firebase getul pentru polls
 
   activeTab = "profile" // 'profile', 'polls', 'security'
@@ -195,5 +195,47 @@ export class UserProfileComponent {
 
   getRecentPolls(polls: Poll[]): Poll[] {
     return polls.slice(0, 5)
+  }
+
+  // Check if poll is currently active (can be voted on)
+  isPollActive(poll: Poll): boolean {
+    const now = new Date()
+
+    // If poll has start date and it's in the future, not active yet
+    if (poll.startDate && new Date(poll.startDate) > now) {
+      return false
+    }
+
+    // If poll has end date and it's in the past, not active anymore
+    if (poll.endDate && new Date(poll.endDate) < now) {
+      return false
+    }
+
+    return true
+  }
+
+  // Get poll status text
+  getPollStatus(poll: Poll): string {
+    const now = new Date()
+
+    if (poll.startDate && new Date(poll.startDate) > now) {
+      return "Upcoming"
+    }
+
+    if (poll.endDate && new Date(poll.endDate) < now) {
+      return "Ended"
+    }
+
+    if (poll.startDate && new Date(poll.startDate) <= now) {
+      return "Active"
+    }
+
+    return "Active"
+  }
+
+  // Get CSS class for poll status
+  getPollStatusClass(poll: Poll): string {
+    const status = this.getPollStatus(poll)
+    return `status-${status.toLowerCase()}`
   }
 }

@@ -426,6 +426,16 @@
     transform-origin: left;
 }
 
+.action-link.disabled {
+    color: #9ca3af;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.action-link.disabled::after {
+    display: none;
+}
+
 .empty-state {
     text-align: center;
     background-color: #f9fafb;
@@ -503,6 +513,80 @@
 .poll-item-meta {
     font-size: 0.875rem;
     color: #9ca3af;
+    margin-top: 0.75rem;
+}
+
+/* Poll Schedule Styles */
+.poll-schedule {
+    margin: 0.75rem 0;
+    padding: 0.75rem;
+    background-color: #f3f4f6;
+    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+}
+
+.schedule-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+    font-size: 0.875rem;
+}
+
+.schedule-item:last-child {
+    margin-bottom: 0;
+}
+
+.schedule-icon {
+    font-size: 1rem;
+}
+
+.schedule-label {
+    font-weight: 600;
+    color: #4b5563;
+    min-width: 45px;
+}
+
+.schedule-date {
+    color: #6b7280;
+}
+
+.poll-status {
+    margin: 0.5rem 0;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 2rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-active {
+    background-color: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.status-upcoming {
+    background-color: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+
+.status-ended {
+    background-color: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.poll-item-badges {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
 .poll-item-badge {
@@ -649,6 +733,14 @@
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
     }
+
+    .poll-schedule {
+        padding: 0.5rem;
+    }
+
+    .schedule-item {
+        font-size: 0.8rem;
+    }
 }
 
 @media (max-width: 480px) {
@@ -674,11 +766,22 @@
         gap: 0.75rem;
     }
 
-    .poll-item-badge {
+    .poll-item-badges {
         align-self: flex-start;
+        margin-top: 0.5rem;
     }
 
     .poll-item-actions {
         flex-wrap: wrap;
+    }
+
+    .schedule-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+
+    .schedule-label {
+        min-width: auto;
     }
 }

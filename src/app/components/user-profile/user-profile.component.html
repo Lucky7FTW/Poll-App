@@ -14,11 +14,11 @@
                 Profile
             </button>
             <button [class.active]="activeTab === 'polls'" (click)="setActiveTab('polls')" class="tab-button">
-                <span class="tab-icon">🔒</span>
+                <span class="tab-icon">📊</span>
                 My Polls
             </button>
             <button [class.active]="activeTab === 'security'" (click)="setActiveTab('security')" class="tab-button">
-                <span class="tab-icon">⚙️</span>
+                <span class="tab-icon">🔒</span>
                 Security
             </button>
         </div>
@@ -131,18 +131,45 @@
                                 <h3 class="poll-item-title">
                                     <a [routerLink]="['/poll', poll.id]">{{ poll.title }}</a>
                                 </h3>
+
+                                <!-- Poll Schedule Information -->
+                                <div *ngIf="poll.startDate || poll.endDate" class="poll-schedule">
+                                    <div *ngIf="poll.startDate" class="schedule-item">
+                                        <span class="schedule-icon">🚀</span>
+                                        <span class="schedule-label">Starts:</span>
+                                        <span class="schedule-date">{{ poll.startDate | date:'medium' }}</span>
+                                    </div>
+                                    <div *ngIf="poll.endDate" class="schedule-item">
+                                        <span class="schedule-icon">🏁</span>
+                                        <span class="schedule-label">Ends:</span>
+                                        <span class="schedule-date">{{ poll.endDate | date:'medium' }}</span>
+                                    </div>
+                                </div>
+
+                                <!-- Poll Status -->
+                                <div class="poll-status">
+                                    <span [ngClass]="getPollStatusClass(poll)" class="status-badge">
+                                        {{ getPollStatus(poll) }}
+                                    </span>
+                                </div>
+
                                 <p class="poll-item-meta">
                                     Created on {{ poll.createdAt | date:'medium' }} • {{ poll.totalVotes || 0 }}
                                     votes
                                 </p>
                             </div>
-                            <!-- <div class="poll-item-badge" [class.private-badge]="!poll.isPublic"
-                                [class.public-badge]="poll.isPublic">
-                                {{ poll.isPublic ? 'Public' : 'Private' }}
-                            </div> -->
+                            <div class="poll-item-badges">
+                                <!-- <div class="poll-item-badge" [class.private-badge]="!poll.isPublic"
+                                    [class.public-badge]="poll.isPublic">
+                                    {{ poll.isPublic ? 'Public' : 'Private' }}
+                                </div> -->
+                            </div>
                         </div>
                         <div class="poll-item-actions">
-                            <a [routerLink]="['/poll', poll.id]" class="action-link">Vote</a>
+                            <a [routerLink]="['/poll', poll.id]" class="action-link"
+                                [class.disabled]="!isPollActive(poll)">
+                                Vote
+                            </a>
                             <a [routerLink]="['/poll', poll.id, 'results']" class="action-link">Results</a>
                             <a routerLink="/create" [queryParams]="{edit: poll.id}" class="action-link">Edit</a>
                         </div>
