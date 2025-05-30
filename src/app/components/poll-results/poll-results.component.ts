@@ -3,10 +3,9 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
 import { ChartData, ChartOptions } from 'chart.js';
-import { BaseChartDirective } from 'ng2-charts';
-
 import { Poll, PollResult } from '../../models/poll.model';
 import { PollService } from '../../services/poll.service';
+import { NgChartsModule } from 'ng2-charts';
 
 @Component({
   selector: 'app-poll-results',
@@ -14,7 +13,7 @@ import { PollService } from '../../services/poll.service';
   imports: [
     CommonModule,
     RouterLink,
-    BaseChartDirective
+    NgChartsModule
   ],
   templateUrl: './poll-results.component.html',
   styleUrl:   './poll-results.component.css'

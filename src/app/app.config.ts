@@ -1,4 +1,4 @@
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { ApplicationConfig, provideZoneChangeDetection,importProvidersFrom } from '@angular/core';
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
@@ -10,7 +10,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { getDatabase, provideDatabase } from '@angular/fire/database';
 import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { firebaseConfig } from '../environment';
-import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
+import { NgChartsModule } from 'ng2-charts'
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -20,6 +20,6 @@ export const appConfig: ApplicationConfig = {
     provideClientHydration(withEventReplay()),
     provideFirebaseApp(() => initializeApp(firebaseConfig)),
     provideDatabase(() => getDatabase()),
-    provideCharts(withDefaultRegisterables())
+    importProvidersFrom(NgChartsModule),
   ],
 };
