@@ -12,6 +12,7 @@
     <!-- main -->
     <div *ngIf="!isLoading && poll">
 
+      <!-- header -->
       <div class="poll-header">
         <h2 class="poll-title">{{ poll.title }} - Results</h2>
         <p *ngIf="poll.description" class="poll-description">{{ poll.description }}</p>
@@ -21,17 +22,7 @@
         </div>
       </div>
 
-      <!-- chart -->
-      <div class="chart-container">
-        <canvas baseChart
-                type="pie"
-                [data]="pieChartData"
-                [options]="pieChartOptions"
-                height="300">
-        </canvas>
-      </div>
-
-      <!-- detailed list -->
+      <!-- detailed results FIRST -->
       <div class="detailed-results">
         <h3 class="section-title">Detailed Results</h3>
         <div class="results-list">
@@ -45,6 +36,31 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- graph selector -->
+      <div class="graph-switcher">
+        <button [class.active]="graph==='pie'" (click)="graph='pie'">Pie</button>
+        <button [class.active]="graph==='bar'" (click)="graph='bar'">Bar</button>
+      </div>
+
+      <!-- graph AFTER the list -->
+      <div class="chart-container" *ngIf="graph==='pie'">
+        <canvas baseChart
+                [type]="'pie'"
+                [data]="pieData"
+                [options]="pieOpts"
+                height="300">
+        </canvas>
+      </div>
+
+      <div class="chart-container" *ngIf="graph==='bar'">
+        <canvas baseChart
+                [type]="'bar'"
+                [data]="barData"
+                [options]="barOpts"
+                height="300">
+        </canvas>
       </div>
 
       <!-- nav -->
@@ -61,3 +77,4 @@
 
   </div>
 </div>
+  

@@ -1,9 +1,8 @@
-// src/app/poll-results/poll-results.component.ts
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
-import { ChartData, ChartOptions, ChartType } from 'chart.js';
+import { ChartData, ChartOptions } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 
 import { Poll, PollResult } from '../../models/poll.model';
@@ -15,39 +14,54 @@ import { PollService } from '../../services/poll.service';
   imports: [
     CommonModule,
     RouterLink,
-    BaseChartDirective,          // 👈 directive that powers <canvas baseChart>
+    BaseChartDirective
   ],
   templateUrl: './poll-results.component.html',
-  styleUrl: './poll-results.component.css',
+  styleUrl:   './poll-results.component.css'
 })
 export class PollResultsComponent implements OnInit {
   private pollService = inject(PollService);
   private route       = inject(ActivatedRoute);
 
-  /* ---------- data ---------- */
+  /* ---------- poll data ---------- */
   poll: Poll | null = null;
   results: PollResult[] = [];
   totalVotes = 0;
 
-  /* ---------- Chart.js bindings ---------- */
-  pieChartType: ChartType = 'pie';
-  pieChartData: ChartData<'pie', number[], string | string[]> = {
+  /* ---------- which graph ---------- */
+  graph: 'pie' | 'bar' = 'pie';
+
+  /* ---------- chart datasets ---------- */
+  pieData: ChartData<'pie', number[], string | string[]> = {
     labels: [],
-    datasets: [{ data: [] }],
+    datasets: [{ data: [] }]
   };
-  pieChartOptions: ChartOptions<'pie'> = {
+
+  barData: ChartData<'bar', number[], string | string[]> = {
+    labels: [],
+    datasets: [{ data: [] }]
+  };
+
+  /* ---------- chart options ---------- */
+  pieOpts: ChartOptions<'pie'> = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { position: 'bottom' } },
+    plugins: { legend: { position: 'bottom' } }
+  };
+
+  barOpts: ChartOptions<'bar'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: { y: { beginAtZero: true } },
+    plugins: { legend: { display: false } }
   };
 
   /* ---------- ui state ---------- */
-  isLoading = true;
+  isLoading   = true;
   errorMessage = '';
 
   ngOnInit(): void {
     const pollId = this.route.snapshot.paramMap.get('id');
-
     if (!pollId) {
       this.errorMessage = 'Poll ID is missing';
       this.isLoading = false;
@@ -65,9 +79,9 @@ export class PollResultsComponent implements OnInit {
         this.poll       = poll;
         this.totalVotes = poll.totalVotes;
 
-        /* ----- fabricate votes per option if not stored (demo) ----- */
+        /* ---- fabricate per-option votes if only total stored (demo) ---- */
         const votesPerOpt = Math.floor(poll.totalVotes / poll.options.length);
-        const fabricated  = poll.options.map((opt, idx) => {
+        this.results = poll.options.map((opt, idx) => {
           const votes = idx === 0
             ? poll.totalVotes - votesPerOpt * (poll.options.length - 1)
             : votesPerOpt;
@@ -78,17 +92,17 @@ export class PollResultsComponent implements OnInit {
             votes,
             percentage: poll.totalVotes === 0
               ? 0
-              : Math.round((votes / poll.totalVotes) * 100),
+              : Math.round((votes / poll.totalVotes) * 100)
           };
         });
+        /* ---------------------------------------------------------------- */
 
-        this.results = fabricated;
+        /* ---- fill both datasets ---- */
+        const labels = this.results.map(r => r.optionText);
+        const data   = this.results.map(r => r.votes);
 
-        /* feed the chart */
-        this.pieChartData = {
-          labels: this.results.map(r => r.optionText),
-          datasets: [{ data: this.results.map(r => r.votes) }],
-        };
+        this.pieData = { labels, datasets: [{ data }] };
+        this.barData = { labels, datasets: [{ data }] };
 
         this.isLoading = false;
       },
@@ -96,7 +110,7 @@ export class PollResultsComponent implements OnInit {
         console.error('Error loading poll:', err);
         this.errorMessage = 'Failed to load poll results.';
         this.isLoading = false;
-      },
+      }
     });
   }
 }
