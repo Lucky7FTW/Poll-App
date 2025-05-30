@@ -12,7 +12,7 @@ import { map, Observable, take } from 'rxjs';
   providedIn: 'root',
 })
 export class AuthGuard implements CanActivate {
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(private authService: AuthService, private router: Router) { }
 
   canActivate(
     route: ActivatedRouteSnapshot,
@@ -24,7 +24,8 @@ export class AuthGuard implements CanActivate {
         if (!!token) {
           return true;
         } else {
-          this.router.navigate(['/auth']);
+          //this.router.navigate(['/login']);
+          this.router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
           return false;
         }
       })

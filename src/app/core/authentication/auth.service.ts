@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { BehaviorSubject, tap } from 'rxjs';
+import { BehaviorSubject, map, switchMap, tap } from 'rxjs';
 import { User } from './models/user.model';
 import { AuthResponseData } from './models/auth.model';
 import { firebaseConfig } from '../../../environment';
@@ -49,30 +49,33 @@ export class AuthService {
         }
       )
       .pipe(
-        tap((response) => {
-          // 1️⃣ Verificăm dacă emailul este verificat
-          this.http
+        switchMap((response) => {
+          // Chaining: lookup email verification status
+          return this.http
             .post<any>(
               `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${this.apiKey}`,
               {
                 idToken: response.idToken,
               }
             )
-            .subscribe((lookupResponse) => {
-              const userInfo = lookupResponse.users?.[0];
-              if (userInfo?.emailVerified) {
-                this.handleAuthentication(
-                  response.email,
-                  response.localId,
-                  response.idToken,
-                  +response.expiresIn
-                );
-                this.router.navigate(['track']);
-              } else {
-                alert('Please verify your email before logging in.');
-                this.logout();
-              }
-            });
+            .pipe(
+              map((lookupResponse) => {
+                const userInfo = lookupResponse.users?.[0];
+                if (userInfo?.emailVerified) {
+                  this.handleAuthentication(
+                    response.email,
+                    response.localId,
+                    response.idToken,
+                    +response.expiresIn
+                  );
+                  return response;
+                } else {
+                  alert('Please verify your email before logging in.');
+                  this.logout();
+                  throw new Error('Email not verified');
+                }
+              })
+            );
         })
       );
   }
@@ -89,7 +92,7 @@ export class AuthService {
 
   logout() {
     this.user.next(null);
-    this.router.navigate(['/auth']);
+    this.router.navigate(['/']);
   }
 
   sendVerificationEmail(idToken: string) {
