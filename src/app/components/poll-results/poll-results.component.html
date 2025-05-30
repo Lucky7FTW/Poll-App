@@ -1,51 +1,63 @@
 <div class="poll-results-container">
-    <div class="results-card">
-        <div *ngIf="isLoading" class="loading-container">
-            <div class="loading-spinner"></div>
-        </div>
+  <div class="results-card">
 
-        <div *ngIf="errorMessage" class="error-message">
-            {{ errorMessage }}
-        </div>
-
-        <div *ngIf="!isLoading && poll">
-            <div class="poll-header">
-                <h2 class="poll-title">{{ poll.title }} - Results</h2>
-                <p *ngIf="poll.description" class="poll-description">{{ poll.description }}</p>
-                <div class="poll-meta">
-                    <div>Created by {{ poll.createdBy }} · {{ poll.createdAt | date:'medium' }}</div>
-                    <div class="total-votes">Total votes: {{ totalVotes }}</div>
-                </div>
-            </div>
-
-            <!-- <div class="chart-container">
-                <canvas baseChart [data]="pieChartData" [type]="pieChartType" [options]="pieChartOptions" height="300">
-                </canvas>
-            </div> -->
-
-            <div class="detailed-results">
-                <h3 class="section-title">Detailed Results</h3>
-                <div class="results-list">
-                    <div *ngFor="let result of results" class="result-item">
-                        <div class="result-header">
-                            <span class="option-text">{{ result.optionText }}</span>
-                            <span class="vote-info">{{ result.votes }} votes ({{ result.percentage }}%)</span>
-                        </div>
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar" [style.width.%]="result.percentage"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="poll-footer">
-                <a [routerLink]="['/polls']" class="back-link">Back to Polls</a>
-                <a [routerLink]="['/poll', poll.id]" class="back-link">Back to Poll</a>
-            </div>
-        </div>
-
-        <div *ngIf="!isLoading && !poll && !errorMessage" class="not-found">
-            <p>Poll not found</p>
-        </div>
+    <!-- loading -->
+    <div *ngIf="isLoading" class="loading-container">
+      <div class="loading-spinner"></div>
     </div>
+
+    <!-- error -->
+    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+
+    <!-- main -->
+    <div *ngIf="!isLoading && poll">
+
+      <div class="poll-header">
+        <h2 class="poll-title">{{ poll.title }} - Results</h2>
+        <p *ngIf="poll.description" class="poll-description">{{ poll.description }}</p>
+        <div class="poll-meta">
+          <div>Created by {{ poll.createdBy }} · {{ poll.createdAt | date:'medium' }}</div>
+          <div class="total-votes">Total votes: {{ totalVotes }}</div>
+        </div>
+      </div>
+
+      <!-- chart -->
+      <div class="chart-container">
+        <canvas baseChart
+                type="pie"
+                [data]="pieChartData"
+                [options]="pieChartOptions"
+                height="300">
+        </canvas>
+      </div>
+
+      <!-- detailed list -->
+      <div class="detailed-results">
+        <h3 class="section-title">Detailed Results</h3>
+        <div class="results-list">
+          <div *ngFor="let r of results" class="result-item">
+            <div class="result-header">
+              <span class="option-text">{{ r.optionText }}</span>
+              <span class="vote-info">{{ r.votes }} votes ({{ r.percentage }}%)</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar" [style.width.%]="r.percentage"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- nav -->
+      <div class="poll-footer">
+        <a [routerLink]="['/polls']" class="back-link">Back to Polls</a>
+        <a [routerLink]="['/poll', poll.id]" class="back-link">Back to Poll</a>
+      </div>
+    </div>
+
+    <!-- not-found -->
+    <div *ngIf="!isLoading && !poll && !errorMessage" class="not-found">
+      <p>Poll not found</p>
+    </div>
+
+  </div>
 </div>
