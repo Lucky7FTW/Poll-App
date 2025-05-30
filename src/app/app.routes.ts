@@ -7,6 +7,11 @@ import { PollResultsComponent } from './components/poll-results/poll-results.com
 import { LoginComponent } from './components/login/login.component';
 import { PrivatePollsComponent } from './components/private-polls/private-polls.component';
 import { SignupComponent } from './components/signup/signup.component';
+import { ContactComponent } from './components/footer/contact/contact.component';
+import { TermsComponent } from './components/footer/terms/terms.component';
+import { PrivacyComponent } from './components/footer/privacy/privacy.component';
+import { UserProfileComponent } from './components/user-profile/user-profile.component';
+import { AuthGuard } from './core/authentication/auth.guard';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -14,7 +19,7 @@ export const routes: Routes = [
   {
     path: 'create',
     component: CreatePollComponent,
-    //canActivate: [authGuard]
+    canActivate: [AuthGuard]
   },
   {
     path: 'private-polls',
@@ -25,5 +30,13 @@ export const routes: Routes = [
   { path: 'poll/:id/results', component: PollResultsComponent },
   { path: 'login', component: LoginComponent },
   { path: 'signup', component: SignupComponent },
+  { path: 'contact', component: ContactComponent },
+  { path: 'terms', component: TermsComponent },
+  { path: 'privacy', component: PrivacyComponent },
+  {
+    path: 'user-profile',
+    component: UserProfileComponent,
+    //canActivate: [authGuard],
+  },
   { path: '**', redirectTo: '' },
 ];

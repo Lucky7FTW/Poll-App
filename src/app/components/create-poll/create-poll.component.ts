@@ -45,6 +45,46 @@ export class CreatePollComponent {
     return this.pollForm.get('options') as FormArray;
   }
 
+  dateRangeValidator(form: FormGroup) {
+    const startDate = form.get("startDate")?.value
+    const endDate = form.get("endDate")?.value
+
+    if (startDate && endDate) {
+      const start = new Date(startDate)
+      const end = new Date(endDate)
+      const now = new Date()
+
+      // Check if start date is in the past
+      if (start < now) {
+        return { startDateInPast: true }
+      }
+
+      // Check if end date is before start date
+      if (end <= start) {
+        return { endDateBeforeStart: true }
+      }
+    }
+
+    return null
+  }
+
+  // Get minimum date for date inputs (today)
+  getMinDate(): string {
+    const today = new Date()
+    return today.toISOString().split("T")[0]
+  }
+
+  // Get minimum end date (start date + 1 day)
+  getMinEndDate(): string {
+    const startDate = this.pollForm.get("startDate")?.value
+    if (startDate) {
+      const minEndDate = new Date(startDate)
+      minEndDate.setDate(minEndDate.getDate() + 1)
+      return minEndDate.toISOString().split("T")[0]
+    }
+    return this.getMinDate()
+  }
+
   createOption(): FormGroup {
     return this.fb.group({
       text: ['', Validators.required],

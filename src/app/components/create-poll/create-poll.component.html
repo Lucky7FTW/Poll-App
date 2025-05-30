@@ -44,6 +44,37 @@
                 </div>
             </div>
 
+            <!-- Date Range Section -->
+            <div class="form-group">
+                <label class="form-label">Poll Schedule (Optional)</label>
+
+                <div class="date-inputs">
+                    <div class="date-input-group">
+                        <label for="startDate" class="date-label">Start Date</label>
+                        <input type="datetime-local" id="startDate" formControlName="startDate"
+                            class="form-input date-input" [min]="getMinDate() + 'T00:00'">
+                        <div class="date-help">When should voting begin? (Leave empty for immediate start)</div>
+                    </div>
+
+                    <div class="date-input-group">
+                        <label for="endDate" class="date-label">End Date</label>
+                        <input type="datetime-local" id="endDate" formControlName="endDate"
+                            class="form-input date-input" [min]="getMinEndDate() + 'T00:00'">
+                        <div class="date-help">When should voting end? (Leave empty for no end date)</div>
+                    </div>
+                </div>
+
+                <!-- Date validation errors -->
+                <div *ngIf="pollForm.hasError('startDateInPast') && (pollForm.get('startDate')?.touched || pollForm.get('endDate')?.touched)"
+                    class="form-error">
+                    Start date cannot be in the past
+                </div>
+                <div *ngIf="pollForm.hasError('endDateBeforeStart') && (pollForm.get('startDate')?.touched || pollForm.get('endDate')?.touched)"
+                    class="form-error">
+                    End date must be after start date
+                </div>
+            </div>
+
             <div class="form-group">
                 <label class="form-label">Poll Settings</label>
 
