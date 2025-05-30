@@ -13,6 +13,8 @@ export interface Poll {
     allowMultiple: boolean;
     isPrivate: boolean;
     totalVotes: number;
+    startDate?: string // ISO string format
+    endDate?: string // ISO string format
 }
 
 export interface PollResult {

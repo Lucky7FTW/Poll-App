@@ -1,12 +1,12 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import {
   FormBuilder, FormGroup, ReactiveFormsModule, Validators
 } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/authentication/auth.service';
-import { TextService } from '../../services/text.service'; // Adjust path as needed
-import { Observable } from 'rxjs';
+import { TextService } from '../../services/text.service';
+import { Observable,take } from 'rxjs';
 
 interface LoginTexts {
   title: string;
@@ -30,9 +30,10 @@ interface LoginTexts {
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private authService = inject(AuthService);
   private textService = inject(TextService);
 
@@ -45,6 +46,21 @@ export class LoginComponent {
 
   isLoading = false;
   errorMessage = '';
+  returnUrl = '/';
+
+  ngOnInit(): void {
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+    console.log(this.returnUrl)
+
+    this.authService.user
+      .pipe(take(1))
+      .subscribe((user) => {
+        if (user) {
+          this.router.navigateByUrl(this.returnUrl);
+        }
+      });
+
+  }
 
   onSubmit() {
     if (this.loginForm.invalid) return;
@@ -57,7 +73,6 @@ export class LoginComponent {
     this.authService.login(email, password).subscribe({
       next: (res) => {
         this.isLoading = false;
-        // Navigate after login if not handled by AuthService
       },
       error: (err) => {
         this.isLoading = false;
