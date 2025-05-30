@@ -1,3 +1,4 @@
+/** Keys used in create-poll component and its template */
 export interface PollTexts {
   title: string;
   questionLabel: string;
@@ -7,8 +8,16 @@ export interface PollTexts {
   descriptionPh: string;
   optionsLabel: string;
   addOption: string;
+  removeOption: string;
   optionPh: string;
   atLeastTwo: string;
+  scheduleLabel: string;
+  startDateLabel: string;
+  startDateHelp: string;
+  endDateLabel: string;
+  endDateHelp: string;
+  startDatePastError: string;
+  endDateBeforeStartError: string;
   settingsLabel: string;
   allowMultiple: string;
   isPrivate: string;

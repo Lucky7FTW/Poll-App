@@ -2,152 +2,148 @@
   <div class="poll-card">
     <h2 class="poll-title">{{ t.title }}</h2>
 
-    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+    <!-- top-level error from the component -->
+    <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
 
-    <form [formGroup]="pollForm" (ngSubmit)="onSubmit()" class="poll-form">
-      <!-- Question -->
+    <form [formGroup]="pollForm"
+          (ngSubmit)="onSubmit()"
+          class="poll-form">
+
+      <!-- ───── Question ───── -->
       <div class="form-group">
-        <label class="form-label" for="title">{{ t.questionLabel }}</label>
-        <input id="title" class="form-input" type="text"
+        <label for="title" class="form-label">{{ t.questionLabel }}</label>
+
+        <input id="title"
+               type="text"
+               class="form-input"
                formControlName="title"
                [placeholder]="t.questionPh" />
-        <div class="form-error"
-             *ngIf="pollForm.get('title')?.invalid && pollForm.get('title')?.touched">
+
+        <div *ngIf="pollForm.get('title')?.invalid && pollForm.get('title')?.touched"
+             class="form-error">
           {{ t.questionError }}
         </div>
       </div>
 
-      <!-- Description -->
+      <!-- ───── Description ───── -->
       <div class="form-group">
-        <label class="form-label" for="description">{{ t.descriptionLabel }}</label>
-        <textarea id="description" rows="3" class="form-textarea"
+        <label for="description" class="form-label">{{ t.descriptionLabel }}</label>
+
+        <textarea id="description"
+                  rows="3"
+                  class="form-textarea"
                   formControlName="description"
                   [placeholder]="t.descriptionPh"></textarea>
       </div>
 
-      <!-- Options -->
-      <div class="form-group">
+      <!-- ───── Options ───── -->
+      <div class="form-group" formArrayName="options">
         <div class="options-header">
           <label class="form-label">{{ t.optionsLabel }}</label>
-          <button type="button" class="add-option-button" (click)="addOption()">
+          <button type="button"
+                  class="add-option-button"
+                  (click)="addOption()">
             {{ t.addOption }}
           </button>
         </div>
 
-        <form [formGroup]="pollForm" (ngSubmit)="onSubmit()" class="poll-form">
-            <div class="form-group">
-                <label for="title" class="form-label">Poll Question</label>
-                <input type="text" id="title" formControlName="title" class="form-input"
-                    placeholder="What's your favorite programming language?">
-                <div *ngIf="pollForm.get('title')?.invalid && pollForm.get('title')?.touched" class="form-error">
-                    Question is required (min 5 characters)
-                </div>
-            </div>
+        <div class="options-list">
+          <div *ngFor="let option of options.controls; let i = index"
+               [formGroupName]="i"
+               class="option-item">
 
-            <div class="form-group">
-                <label for="description" class="form-label">Description (Optional)</label>
-                <textarea id="description" formControlName="description" rows="3" class="form-textarea"
-                    placeholder="Provide additional context for your poll..."></textarea>
-            </div>
+            <input type="text"
+                   class="form-input"
+                   formControlName="text"
+                   [placeholder]="t.optionPh + ' ' + (i + 1)" />
 
-            <div class="form-group">
-                <div class="options-header">
-                    <label class="form-label">Options</label>
-                    <button type="button" (click)="addOption()" class="add-option-button">
-                        Add Option
-                    </button>
-                </div>
-
-                <div formArrayName="options" class="options-list">
-                    <div *ngFor="let option of options.controls; let i = index" [formGroupName]="i" class="option-item">
-                        <input type="text" formControlName="text" class="form-input" placeholder="Option {{ i + 1 }}">
-                        <button *ngIf="i > 1" type="button" (click)="removeOption(i)" class="remove-option-button">
-                            Remove
-                        </button>
-                    </div>
-                </div>
-
-                <div *ngIf="options.invalid && (options.dirty || options.touched)" class="form-error">
-                    At least 2 options are required
-                </div>
-            </div>
-
-            <!-- Date Range Section -->
-            <div class="form-group">
-                <label class="form-label">Poll Schedule (Optional)</label>
-
-                <div class="date-inputs">
-                    <div class="date-input-group">
-                        <label for="startDate" class="date-label">Start Date</label>
-                        <input type="datetime-local" id="startDate" formControlName="startDate"
-                            class="form-input date-input" [min]="getMinDate() + 'T00:00'">
-                        <div class="date-help">When should voting begin? (Leave empty for immediate start)</div>
-                    </div>
-
-                    <div class="date-input-group">
-                        <label for="endDate" class="date-label">End Date</label>
-                        <input type="datetime-local" id="endDate" formControlName="endDate"
-                            class="form-input date-input" [min]="getMinEndDate() + 'T00:00'">
-                        <div class="date-help">When should voting end? (Leave empty for no end date)</div>
-                    </div>
-                </div>
-
-                <!-- Date validation errors -->
-                <div *ngIf="pollForm.hasError('startDateInPast') && (pollForm.get('startDate')?.touched || pollForm.get('endDate')?.touched)"
-                    class="form-error">
-                    Start date cannot be in the past
-                </div>
-                <div *ngIf="pollForm.hasError('endDateBeforeStart') && (pollForm.get('startDate')?.touched || pollForm.get('endDate')?.touched)"
-                    class="form-error">
-                    End date must be after start date
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Poll Settings</label>
-
-                <div class="checkbox-group">
-                    <input type="checkbox" id="allowMultiple" formControlName="allowMultiple" class="checkbox-input">
-                    <label for="allowMultiple" class="checkbox-label">Allow multiple selections</label>
-                </div>
-
-                <div class="checkbox-group">
-                    <input type="checkbox" id="isPrivate" formControlName="isPrivate" class="checkbox-input">
-                    <label for="isPrivate" class="checkbox-label">Private poll (only accessible via link)</label>
-                </div>
-            </div>
-
-            <button type="submit" [disabled]="pollForm.invalid || isLoading" class="submit-button"
-                [class.loading]="isLoading">
-                <span *ngIf="isLoading">Creating Poll...</span>
-                <span *ngIf="!isLoading">Create Poll</span>
+            <button *ngIf="i > 1"
+                    type="button"
+                    class="remove-option-button"
+                    (click)="removeOption(i)">
+              {{ t.removeOption }}
             </button>
           </div>
         </div>
 
-        <div class="form-error"
-             *ngIf="options.invalid && (options.dirty || options.touched)">
+        <div *ngIf="options.invalid && (options.dirty || options.touched)"
+             class="form-error">
           {{ t.atLeastTwo }}
         </div>
       </div>
 
-      <!-- Settings -->
+      <!-- ───── Schedule ───── -->
+      <div class="form-group">
+        <label class="form-label">{{ t.scheduleLabel }}</label>
+
+        <div class="date-inputs">
+          <!-- start -->
+          <div class="date-input-group">
+            <label for="startDate" class="date-label">{{ t.startDateLabel }}</label>
+
+            <input id="startDate"
+                   type="datetime-local"
+                   class="form-input date-input"
+                   formControlName="startDate"
+                   [min]="getMinDate() + 'T00:00'">
+
+            <small class="date-help">{{ t.startDateHelp }}</small>
+          </div>
+
+          <!-- end -->
+          <div class="date-input-group">
+            <label for="endDate" class="date-label">{{ t.endDateLabel }}</label>
+
+            <input id="endDate"
+                   type="datetime-local"
+                   class="form-input date-input"
+                   formControlName="endDate"
+                   [min]="getMinEndDate() + 'T00:00'">
+
+            <small class="date-help">{{ t.endDateHelp }}</small>
+          </div>
+        </div>
+
+        <!-- validation errors -->
+        <p *ngIf="pollForm.hasError('startDateInPast') && pollForm.get('startDate')?.touched"
+           class="form-error">
+          {{ t.startDatePastError }}
+        </p>
+
+        <p *ngIf="pollForm.hasError('endDateBeforeStart') && pollForm.get('endDate')?.touched"
+           class="form-error">
+          {{ t.endDateBeforeStartError }}
+        </p>
+      </div>
+
+      <!-- ───── Settings ───── -->
       <div class="form-group">
         <label class="form-label">{{ t.settingsLabel }}</label>
+
         <div class="checkbox-group">
-          <input id="allowMultiple" type="checkbox"
-                 class="checkbox-input" formControlName="allowMultiple" />
-          <label for="allowMultiple" class="checkbox-label">{{ t.allowMultiple }}</label>
+          <input id="allowMultiple"
+                 type="checkbox"
+                 class="checkbox-input"
+                 formControlName="allowMultiple">
+          <label for="allowMultiple" class="checkbox-label">
+            {{ t.allowMultiple }}
+          </label>
         </div>
+
         <div class="checkbox-group">
-          <input id="isPrivate" type="checkbox"
-                 class="checkbox-input" formControlName="isPrivate" />
-          <label for="isPrivate" class="checkbox-label">{{ t.isPrivate }}</label>
+          <input id="isPrivate"
+                 type="checkbox"
+                 class="checkbox-input"
+                 formControlName="isPrivate">
+          <label for="isPrivate" class="checkbox-label">
+            {{ t.isPrivate }}
+          </label>
         </div>
       </div>
 
-      <!-- Submit -->
-      <button class="submit-button" type="submit"
+      <!-- ───── Submit ───── -->
+      <button type="submit"
+              class="submit-button"
               [disabled]="pollForm.invalid || isLoading"
               [class.loading]="isLoading">
         <span *ngIf="isLoading">{{ t.submitBusy }}</span>

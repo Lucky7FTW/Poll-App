@@ -1,75 +1,85 @@
 <div class="poll-list-container" *ngIf="t$ | async as t">
+  <!-- Header -------------------------------------------------------------->
   <div class="list-header">
     <h2 class="list-title">{{ t.title }}</h2>
     <a routerLink="/create" class="create-button">{{ t.create }}</a>
   </div>
 
+  <!-- States ------------------------------------------------------------->
   <div *ngIf="isLoading" class="loading-container">
     <div class="loading-spinner"></div>
   </div>
 
-  <div *ngIf="errorMessage" class="error-message">
-    {{ errorMessage }}
-  </div>
+  <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
 
-  <div *ngIf="!isLoading && !errorMessage && polls.length === 0" class="empty-state">
+  <div *ngIf="!isLoading && !errorMessage && polls.length === 0"
+       class="empty-state">
     <p class="empty-message">{{ t.empty }}</p>
     <a routerLink="/create" class="create-button">{{ t.emptyCta }}</a>
   </div>
 
-    <div *ngIf="!isLoading && polls.length > 0" class="polls-grid">
-        <div *ngFor="let poll of polls" class="poll-card">
-            <div class="poll-content">
-                <div class="poll-info">
-                    <h3 class="poll-title">
-                        <a [routerLink]="['/poll', poll.id]">{{ poll.title }}</a>
-                    </h3>
-                    <p *ngIf="poll.description" class="poll-description">{{ poll.description }}</p>
+  <!-- Poll grid ---------------------------------------------------------->
+  <div *ngIf="!isLoading && polls.length > 0" class="polls-grid">
+    <div *ngFor="let poll of polls" class="poll-card">
+      <div class="poll-content">
+        <!-- left column -->
+        <div class="poll-info">
+          <h3 class="poll-title">
+            <a [routerLink]="['/poll', poll.id]">{{ poll.title }}</a>
+          </h3>
 
-                    <!-- Poll Schedule Information -->
-                    <div *ngIf="poll.startDate || poll.endDate" class="poll-schedule">
-                        <div *ngIf="poll.startDate" class="schedule-item">
-                            <span class="schedule-icon">🚀</span>
-                            <span class="schedule-label">Starts:</span>
-                            <span class="schedule-date">{{ poll.startDate | date:'medium' }}</span>
-                        </div>
-                        <div *ngIf="poll.endDate" class="schedule-item">
-                            <span class="schedule-icon">🏁</span>
-                            <span class="schedule-label">Ends:</span>
-                            <span class="schedule-date">{{ poll.endDate | date:'medium' }}</span>
-                        </div>
-                    </div>
+          <p *ngIf="poll.description" class="poll-description">
+            {{ poll.description }}
+          </p>
 
-                    <!-- Poll Status -->
-                    <div class="poll-status">
-                        <span [ngClass]="getPollStatusClass(poll)" class="status-badge">
-                            {{ getPollStatus(poll) }}
-                        </span>
-                    </div>
-
-                    <div class="poll-meta">
-                        Created by {{ poll.createdBy }} · {{ poll.createdAt | date:'medium' }}
-                    </div>
-                </div>
-                <div class="poll-stats">
-                    <span class="vote-count">{{ poll.totalVotes }} votes</span>
-                    <div class="poll-actions">
-                        <a [routerLink]="['/poll', poll.id]" class="action-link" [class.disabled]="!isPollActive(poll)">
-                            Vote
-                        </a>
-                        <a [routerLink]="['/poll', poll.id, 'results']" class="action-link">Results</a>
-                    </div>
-                </div>
+          <!-- schedule -->
+          <div *ngIf="poll.startDate || poll.endDate" class="poll-schedule">
+            <div *ngIf="poll.startDate" class="schedule-item">
+              <span class="schedule-icon">🚀</span>
+              <span class="schedule-label">Starts:</span>
+              <span class="schedule-date">
+                {{ poll.startDate | date : 'medium' }}
+              </span>
             </div>
+            <div *ngIf="poll.endDate" class="schedule-item">
+              <span class="schedule-icon">🏁</span>
+              <span class="schedule-label">Ends:</span>
+              <span class="schedule-date">
+                {{ poll.endDate | date : 'medium' }}
+              </span>
+            </div>
+          </div>
+
+          <!-- status -->
+          <div class="poll-status">
+            <span [ngClass]="getPollStatusClass(poll)" class="status-badge">
+              {{ getPollStatus(poll) }}
+            </span>
+          </div>
+
+          <div class="poll-meta">
+            {{ t.createdBy }} {{ poll.createdBy }} ·
+            {{ poll.createdAt | date : 'medium' }}
+          </div>
         </div>
+
+        <!-- right column -->
         <div class="poll-stats">
           <span class="vote-count">{{ poll.totalVotes }} {{ t.votes }}</span>
+
           <div class="poll-actions">
-            <a [routerLink]="['/poll', poll.id]" class="action-link">{{ t.vote }}</a>
-            <a [routerLink]="['/poll', poll.id, 'results']" class="action-link">{{ t.results }}</a>
+            <a [routerLink]="['/poll', poll.id]"
+               class="action-link"
+               [class.disabled]="!isPollActive(poll)">
+              {{ t.vote }}
+            </a>
+            <a [routerLink]="['/poll', poll.id, 'results']"
+               class="action-link">
+              {{ t.results }}
+            </a>
           </div>
         </div>
       </div>
-    </div>
-  </div>
-</div>
+    </div>   
+  </div>     
+</div>       
