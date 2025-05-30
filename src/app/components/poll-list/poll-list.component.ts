@@ -39,4 +39,46 @@ export class PollListComponent implements OnInit {
       this.isLoading = false;
     }
   }
+
+  // Check if poll is currently active (can be voted on)
+  isPollActive(poll: Poll): boolean {
+    const now = new Date()
+
+    // If poll has start date and it's in the future, not active yet
+    if (poll.startDate && new Date(poll.startDate) > now) {
+      return false
+    }
+
+    // If poll has end date and it's in the past, not active anymore
+    if (poll.endDate && new Date(poll.endDate) < now) {
+      return false
+    }
+
+    return true
+  }
+
+  // Get poll status text
+  getPollStatus(poll: Poll): string {
+    const now = new Date()
+
+    if (poll.startDate && new Date(poll.startDate) > now) {
+      return "Upcoming"
+    }
+
+    if (poll.endDate && new Date(poll.endDate) < now) {
+      return "Ended"
+    }
+
+    if (poll.startDate && new Date(poll.startDate) <= now) {
+      return "Active"
+    }
+
+    return "Active"
+  }
+
+  // Get CSS class for poll status
+  getPollStatusClass(poll: Poll): string {
+    const status = this.getPollStatus(poll)
+    return `status-${status.toLowerCase()}`
+  }
 }

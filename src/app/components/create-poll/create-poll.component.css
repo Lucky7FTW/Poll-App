@@ -250,6 +250,59 @@
     color: #dc2626;
 }
 
+/* Date Input Styles */
+.date-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    background-color: #f9fafb;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    border: 1px solid #f3f4f6;
+}
+
+.date-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.date-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #4b5563;
+    display: flex;
+    align-items: center;
+}
+
+.date-label::before {
+    content: "📅";
+    margin-right: 0.5rem;
+    font-size: 1rem;
+}
+
+.date-input {
+    padding: 0.75rem 0.875rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 0.95rem;
+    background-color: white;
+    transition: all 0.3s ease;
+}
+
+.date-input:focus {
+    outline: none;
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+}
+
+.date-help {
+    font-size: 0.8rem;
+    color: #9ca3af;
+    font-style: italic;
+    line-height: 1.4;
+}
+
 .checkbox-group {
     display: flex;
     align-items: center;
@@ -383,6 +436,11 @@
     .poll-title {
         font-size: 1.75rem;
     }
+
+    .date-inputs {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
 }
 
 @media (max-width: 480px) {
@@ -394,5 +452,9 @@
 
     .remove-option-button {
         align-self: flex-end;
+    }
+
+    .date-inputs {
+        padding: 1rem;
     }
 }
