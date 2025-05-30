@@ -1,5 +1,7 @@
+// poll-texts.interface.ts
 export interface PollTexts {
   title: string;
+
   questionLabel: string;
   questionPh: string;
   questionError: string;
@@ -7,8 +9,18 @@ export interface PollTexts {
   descriptionPh: string;
   optionsLabel: string;
   addOption: string;
+  removeOption: string;
   optionPh: string;
   atLeastTwo: string;
+
+  scheduleLabel: string;
+  startDateLabel: string;
+  startDateHelp: string;
+  endDateLabel: string;
+  endDateHelp: string;
+  startDatePastError: string;
+  endDateBeforeStartError: string;
+
   settingsLabel: string;
   allowMultiple: string;
   isPrivate: string;

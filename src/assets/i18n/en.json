@@ -1,26 +1,35 @@
 {
   "poll": {
-    "title":            "Create a New Poll",
-    "questionLabel":    "Poll Question",
-    "questionPh":       "What's your favorite programming language?",
-    "questionError":    "Question is required (min 5 characters)",
+    "title": "Create a New Poll",
+    "questionLabel": "Poll Question",
+    "questionPh": "What's your favorite programming language?",
+    "questionError": "Question is required (min 5 characters)",
 
     "descriptionLabel": "Description (Optional)",
-    "descriptionPh":    "Provide additional context for your poll…",
+    "descriptionPh": "Provide additional context for your poll…",
 
-    "optionsLabel":     "Options",
-    "addOption":        "Add Option",
-    "optionPh":         "Option",
-    "atLeastTwo":       "At least 2 options are required",
+    "optionsLabel": "Options",
+    "addOption": "Add Option",
+    "removeOption": "Remove",
+    "optionPh": "Option",
+    "atLeastTwo": "At least 2 options are required",
 
-    "settingsLabel":    "Poll Settings",
-    "allowMultiple":    "Allow multiple selections",
-    "isPrivate":        "Private poll (only accessible via link)",
+    "scheduleLabel": "Poll Schedule (Optional)",
+    "startDateLabel": "Start Date",
+    "startDateHelp": "When should voting begin? (leave empty for immediate start)",
+    "endDateLabel": "End Date",
+    "endDateHelp": "When should voting end? (leave empty for no end date)",
+    "startDatePastError": "Start date cannot be in the past",
+    "endDateBeforeStartError": "End date must be after start date",
 
-    "submitIdle":       "Create Poll",
-    "submitBusy":       "Creating Poll…",
-    "mustLogin":        "You must be logged in to create a poll.",
-    "genericError":     "Something went wrong while creating the poll."
+    "settingsLabel": "Poll Settings",
+    "allowMultiple": "Allow multiple selections",
+    "isPrivate": "Private poll (only accessible via link)",
+
+    "submitIdle": "Create Poll",
+    "submitBusy": "Creating Poll…",
+    "mustLogin": "You must be logged in to create a poll.",
+    "genericError": "Something went wrong while creating the poll."
   },
 
   "footer": {
@@ -154,7 +163,8 @@
     "copy": "Copy Link",
     "created": "Created on"
   },
-    "signup": {
+
+  "signup": {
     "title": "Create Your Account",
     "subtitle": "Join our community and start creating amazing polls today.",
     "firstName": "First Name",
@@ -175,6 +185,4 @@
     "passwordMismatch": "Passwords don't match.",
     "signupFailed": "Signup failed. Try again."
   }
-
-
 }
