@@ -27,7 +27,7 @@ export class ContactComponent {
     },
     {
       name: "Rares Suciu",
-      email: "rares.suciu@emeal.nttdata.com",
+      email: "rares.suciu@email.com",
       role: "Project Coordinator",
     },
   ]
