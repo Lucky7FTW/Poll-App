@@ -1,23 +1,9 @@
-import { Component, inject } from '@angular/core';
-import { TextService } from '../../services/text.service'; // adjust path if needed
-import { Observable } from 'rxjs';
-import { CommonModule } from '@angular/common';
-
-interface FooterTexts {
-  brand: string;
-  subtitle: string;
-  links: {
-    terms: string;
-    privacy: string;
-    contact: string;
-  };
-  copyright: string;
-}
+import { Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-footer',
-  standalone: true,
-  imports: [CommonModule],
+  imports: [RouterLink],
   templateUrl: './footer.component.html',
   styleUrls: ['./footer.component.css']
 })
