@@ -12,22 +12,22 @@ export class ContactComponent {
   teamMembers = [
     {
       name: "Robert Gengiu",
-      email: "robert.gengiu@emeal.nttdata.com",
+      email: "robert.gengiu@email.com",
       role: "Frontend Architect & UI/UX Designer",
     },
     {
       name: "Francesco Maxim",
-      email: "francesco.maxim@emeal.nttdata.com",
+      email: "francesco.maxim@email.com",
       role: "Firebase Integration & Data Visualization",
     },
     {
       name: "Mihai Tibrea",
-      email: "mihai.tibrea@emeal.nttdata.com",
+      email: "mihai.tibrea@email.com",
       role: "Authentication & Security Specialist",
     },
     {
       name: "Rares Suciu",
-      email: "rares.suciu@emeal.nttdata.com",
+      email: "rares.suciu@email.com",
       role: "Project Coordinator",
     },
   ]
