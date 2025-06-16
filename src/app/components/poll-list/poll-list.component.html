@@ -1,35 +1,40 @@
 <div class="poll-list-container">
+  <!-- ───────────── Header ───────────── -->
   <div class="list-header">
     <h2 class="list-title">All Polls</h2>
     <a routerLink="/create" class="create-button">Create New Poll</a>
   </div>
 
-  <!-- ───────────── Filter UI ───────────── -->
+  <!-- ───────────── Unified filter row ───────────── -->
   <div class="filter-container" *ngIf="!isLoading && !errorMessage">
-    <label for="filterSelect" class="filter-label">Show:</label>
+    <!-- search by title -->
     <input
-    type="text"
-    class="search-input"
-    placeholder="Search by name…"
-    [(ngModel)]="searchTerm" />
+      type="text"
+      class="search-input"
+      placeholder="Search by name…"
+      [(ngModel)]="searchTerm" />
 
-  <select [(ngModel)]="selectedSort" class="sort-select">
-    <option value="date-desc">Newest</option>
-    <option value="date-asc">Oldest</option>
-    <option value="name-asc">Name A-Z</option>
-    <option value="name-desc">Name Z-A</option>
-  </select>
-    <select id="filterSelect"
+    <!-- sort selector -->
+    <select [(ngModel)]="selectedSort" class="sort-select">
+      <option value="date-desc">Newest</option>
+      <option value="date-asc">Oldest</option>
+      <option value="name-asc">Name A-Z</option>
+      <option value="name-desc">Name Z-A</option>
+      <option value="votes-desc">Most popular</option>  <!-- NEW -->
+      <option value="votes-asc">Least popular</option> <!-- NEW -->
+    </select>
+
+    <!-- status filter -->
+    <label for="statusSelect" class="filter-label">Show:</label>
+    <select id="statusSelect"
             [(ngModel)]="selectedFilter"
             class="filter-select">
       <option value="all">All</option>
       <option value="active">Active</option>
-      <option value="inactive">Inactive</option>
-      <option value="closed">Closed</option>
+      <option value="inactive">Upcoming</option>
+      <option value="closed">Ended</option>
     </select>
-    
   </div>
-
 
   <!-- ───────────── States ───────────── -->
   <div *ngIf="isLoading" class="loading-container">
@@ -81,7 +86,8 @@
           </div>
 
           <div class="poll-meta">
-            Created by {{ poll.createdBy }} &middot; {{ poll.createdAt | date : 'medium' }}
+            Created by {{ poll.createdBy }} &middot;
+            {{ poll.createdAt | date : 'medium' }}
           </div>
         </div>
 

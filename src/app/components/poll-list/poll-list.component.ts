@@ -25,18 +25,20 @@ export class PollListComponent implements OnInit {
   isLoading   = true;
   errorMessage = '';
 
-  /** STATUS filter dropdown — keeps template syntax `[ngModel]="selectedFilter"` working */
+  /** STATUS dropdown */
   selectedFilter: 'all' | 'active' | 'inactive' | 'closed' = 'all';
 
   /** SEARCH box */
   searchTerm = '';
 
-  /** SORT dropdown */
-  selectedSort: 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' = 'date-desc';
+  /** SORT dropdown – new modes added */
+  selectedSort:
+    | 'date-desc' | 'date-asc'
+    | 'name-asc' | 'name-desc'
+    | 'votes-desc' | 'votes-asc' = 'date-desc';
 
   /* ───────── derived list ───────── */
   get filteredPolls(): Poll[] {
-
     /* 1️⃣ status filter */
     let list = this.filterByStatus(this.polls, this.selectedFilter);
 
@@ -77,7 +79,7 @@ export class PollListComponent implements OnInit {
     switch (status) {
       case 'active':
         return polls.filter(p => this.isPollActive(p));
-      case 'inactive': // upcoming
+      case 'inactive':
         return polls.filter(
           p => !this.isPollActive(p) && this.getPollStatus(p) === 'Upcoming'
         );
@@ -90,15 +92,25 @@ export class PollListComponent implements OnInit {
 
   private sortFn(a: Poll, b: Poll, mode: string): number {
     switch (mode) {
+
+      /* ----- alphabetical ----- */
       case 'name-asc':
         return a.title.localeCompare(b.title, undefined, { sensitivity: 'base' });
       case 'name-desc':
         return b.title.localeCompare(a.title, undefined, { sensitivity: 'base' });
+
+      /* ----- by date created ----- */
       case 'date-asc':
         return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       case 'date-desc':
-      default:
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+
+      /* ----- by popularity (totalVotes) ----- */
+      case 'votes-asc':   // least popular
+        return (a.totalVotes ?? 0) - (b.totalVotes ?? 0);
+      case 'votes-desc':  // most popular
+      default:
+        return (b.totalVotes ?? 0) - (a.totalVotes ?? 0);
     }
   }
 
@@ -128,9 +140,9 @@ export class PollListComponent implements OnInit {
     if (end <= now) return null;
 
     const diffSec = Math.floor((end.getTime() - now.getTime()) / 1000);
-    const days = Math.floor(diffSec / 86_400);
+    const days  = Math.floor(diffSec / 86_400);
     const hours = Math.floor((diffSec % 86_400) / 3_600);
-    const mins = Math.floor((diffSec % 3_600) / 60);
+    const mins  = Math.floor((diffSec % 3_600)  / 60);
 
     if (days  > 0) return `${days}d ${hours}h`;
     if (hours > 0) return `${hours}h ${mins}m`;
