@@ -13,6 +13,7 @@ import { PrivacyComponent } from './components/footer/privacy/privacy.component'
 import { UserProfileComponent } from './components/user-profile/user-profile.component';
 import { AuthGuard } from './core/authentication/auth.guard';
 import { PollExistsGuard } from './core/authentication/models/poll-exists.guard';
+import { NotFoundComponent } from './components/notfoundcomponent/not-found.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -39,6 +40,6 @@ export const routes: Routes = [
     component: UserProfileComponent,
     //canActivate: [authGuard],
   },
-  { path: '404', component: NotFoundComponent },
+  { path: '404', component: NotFoundComponent  },
   { path: '**', redirectTo: '' },
 ];
