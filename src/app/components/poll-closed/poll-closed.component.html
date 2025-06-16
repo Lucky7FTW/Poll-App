@@ -1,0 +1,15 @@
+<div class="container">
+  <h1 class="code">🏁</h1>
+  <p class="msg">
+    {{ pollName }} has ended.
+  </p>
+
+  <div class="btn-row">
+    <a routerLink="/polls" class="home-btn">← Back to all polls</a>
+    <a [routerLink]="['/poll', pollId, 'results']"
+       class="home-btn alt"
+       *ngIf="pollId">
+      View results →
+    </a>
+  </div>
+</div>
