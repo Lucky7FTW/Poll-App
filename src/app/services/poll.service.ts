@@ -1,4 +1,4 @@
-import { Injectable, inject } from "@angular/core";
+import { Injectable, inject } from '@angular/core';
 import {
   Database,
   ref,
@@ -7,15 +7,15 @@ import {
   update,
   get,
   onValue,
-} from "@angular/fire/database";
-import { Observable, from, map } from "rxjs";
-import { Poll } from "../models/poll.model";
+} from '@angular/fire/database';
+import { Observable, from, map } from 'rxjs';
+import { Poll } from '../models/poll.model';
 
-@Injectable({ providedIn: "root" })
+@Injectable({ providedIn: 'root' })
 export class PollService {
   private db = inject(Database);
-  private pollPath = "polls";
-  private votePath = "votes";
+  private pollPath = 'polls';
+  private votePath = 'votes';
 
   /* ──────────────────────────────────────────────────────────────────────── */
   /*                              READ OPERATIONS                             */
@@ -28,7 +28,7 @@ export class PollService {
     );
   }
 
-  /** Returns every poll whose `createdBy` matches the supplied e‑mail. */
+  /** Returns every poll whose `createdBy` matches the supplied e-mail. */
   getPollsByUser(createdBy: string): Observable<Poll[]> {
     return this.getAllPolls().pipe(
       map((polls) => polls.filter((p) => p.createdBy === createdBy)),
@@ -45,8 +45,6 @@ export class PollService {
           const polls: Poll[] = [];
           snap.forEach((child) => {
             polls.push({ id: child.key!, ...child.val() });
-            /* Returning `false` keeps iteration going and
-               satisfies the ReturnType<boolean|void> constraint */
             return false;
           });
           observer.next(polls);
@@ -68,7 +66,7 @@ export class PollService {
   /* ──────────────────────────────────────────────────────────────────────── */
 
   createPoll(
-    poll: Omit<Poll, "id"> & Partial<Pick<Poll, "id">>,
+    poll: Omit<Poll, 'id'> & Partial<Pick<Poll, 'id'>>,
     customId?: string,
   ): Observable<string> {
     const pollId = customId ?? push(ref(this.db, this.pollPath)).key!;
@@ -90,7 +88,11 @@ export class PollService {
   /*                                 VOTING                                   */
   /* ──────────────────────────────────────────────────────────────────────── */
 
-  submitVote(pollId: string, userId: string, optionIds: string[]): Observable<void> {
+  submitVote(
+    pollId: string,
+    userId: string,
+    optionIds: string[],
+  ): Observable<void> {
     const voteRef = ref(this.db, `${this.votePath}/${pollId}/${userId}`);
     const pollRef = ref(this.db, `${this.pollPath}/${pollId}`);
     const voteData = { optionIds, createdAt: new Date().toISOString() };
@@ -112,7 +114,7 @@ export class PollService {
   }
 
   /* ──────────────────────────────────────────────────────────────────────── */
-  /*                                CLEAN‑UP                                  */
+  /*                                CLEAN-UP                                  */
   /* ──────────────────────────────────────────────────────────────────────── */
 
   deletePoll(pollId: string): Observable<void> {
@@ -140,6 +142,96 @@ export class PollService {
         (err) => observer.error(err),
       );
       return () => unsubscribe();
+    });
+  }
+
+  /* ──────────────────────────────────────────────────────────────────────── */
+  /*               🔍  Filtering / Sorting / Status Utilities                 */
+  /* ──────────────────────────────────────────────────────────────────────── */
+
+  /** True when `now` falls between `startDate`-`endDate` (or those are unset). */
+  isPollActive(poll: Poll): boolean {
+    const now = new Date();
+    if (poll.startDate && new Date(poll.startDate) > now) return false;
+    if (poll.endDate && new Date(poll.endDate) < now) return false;
+    return true;
+  }
+
+  getPollStatus(poll: Poll): 'Upcoming' | 'Active' | 'Ended' {
+    const now = new Date();
+    if (poll.startDate && new Date(poll.startDate) > now) return 'Upcoming';
+    if (poll.endDate && new Date(poll.endDate) < now)   return 'Ended';
+    return 'Active';
+  }
+
+  getPollStatusClass(poll: Poll): string {
+    return `status-${this.getPollStatus(poll).toLowerCase()}`;
+  }
+
+  /** Convenience for displaying a “time left” badge. */
+  getTimeUntilEnd(poll: Poll): string | null {
+    if (!poll.endDate) return null;
+    const end = new Date(poll.endDate), now = new Date();
+    if (end <= now) return null;
+
+    const diffSec = Math.floor((end.getTime() - now.getTime()) / 1000);
+    const days  = Math.floor(diffSec / 86_400);
+    const hours = Math.floor((diffSec % 86_400) / 3_600);
+    const mins  = Math.floor((diffSec % 3_600)  / 60);
+
+    if (days  > 0) return `${days}d ${hours}h`;
+    if (hours > 0) return `${hours}h ${mins}m`;
+    return `${mins}m`;
+  }
+
+  /** Filter list by current status. */
+  filterByStatus(
+    polls: Poll[],
+    status: 'all' | 'active' | 'inactive' | 'closed',
+  ): Poll[] {
+    switch (status) {
+      case 'active':
+        return polls.filter((p) => this.isPollActive(p));
+      case 'inactive':
+        return polls.filter(
+          (p) => !this.isPollActive(p) && this.getPollStatus(p) === 'Upcoming',
+        );
+      case 'closed':
+        return polls.filter((p) => this.getPollStatus(p) === 'Ended');
+      default:
+        return polls;
+    }
+  }
+
+  /** Sort helper – same modes the component had. */
+  sortPolls(
+    polls: Poll[],
+    mode:
+      | 'date-desc' | 'date-asc'
+      | 'name-asc'  | 'name-desc'
+      | 'votes-desc'| 'votes-asc',
+  ): Poll[] {
+    return [...polls].sort((a, b) => {
+      switch (mode) {
+        /* alphabetical */
+        case 'name-asc':
+          return a.title.localeCompare(b.title, undefined, { sensitivity: 'base' });
+        case 'name-desc':
+          return b.title.localeCompare(a.title, undefined, { sensitivity: 'base' });
+
+        /* creation date */
+        case 'date-asc':
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        case 'date-desc':
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+
+        /* popularity */
+        case 'votes-asc':
+          return (a.totalVotes ?? 0) - (b.totalVotes ?? 0);
+        case 'votes-desc':
+        default:
+          return (b.totalVotes ?? 0) - (a.totalVotes ?? 0);
+      }
     });
   }
 }

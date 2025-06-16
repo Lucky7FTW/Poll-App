@@ -785,3 +785,79 @@
         min-width: auto;
     }
 }
+
+/* ─── My-Polls filter bar ─── */
+.poll-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-block: 1.5rem;
+}
+
+/* shared look for all selects / input */
+.control-select,
+.control-search {
+  padding: 0.5rem 0.75rem;
+  border: 2px solid #8b5cf6;               /* indigo-400 */
+  border-radius: 0.5rem;
+  font-weight: 500;
+  color: #4b5563;                          /* gray-600 */
+  background-color: #fff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* dropdowns need the chevron */
+.control-select {
+  appearance: none;
+  cursor: pointer;
+  padding-right: 2.5rem;                   /* space for arrow */
+  background:
+    url("data:image/svg+xml;utf8,\
+      <svg fill='%238b5cf6' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M7 10l5 5 5-5'/></svg>")
+    no-repeat right 0.75rem center / 1rem,
+    #fff;
+}
+
+.control-search {
+  flex: 1;
+  min-width: 12rem;
+}
+
+/* hover / focus */
+.control-select:hover,
+.control-search:hover {
+  border-color: #6d28d9;                   /* indigo-600 */
+}
+
+.control-select:focus,
+.control-search:focus {
+  outline: none;
+  border-color: #6d28d9;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);   /* soft indigo ring */
+}
+
+/* dark-mode tweak (optional) */
+@media (prefers-color-scheme: dark) {
+  .control-select,
+  .control-search {
+    background-color: #1f2937;             /* gray-800 */
+    color: #e5e7eb;                        /* gray-200 */
+    border-color: #6d28d9;                 /* indigo-600 */
+  }
+  .control-select:focus,
+  .control-search:focus {
+    box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.4);
+  }
+}
+
+/* responsive: stack controls on narrow screens */
+@media (max-width: 576px) {
+  .poll-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .control-search {
+    width: 100%;
+  }
+}

@@ -12,7 +12,7 @@ import { PollService } from '../../services/poll.service';
   standalone: true,
   imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './poll-list.component.html',
-  styleUrl:    './poll-list.component.css',
+  styleUrls: ['./poll-list.component.css'],   // ← plural
 })
 export class PollListComponent implements OnInit {
 
@@ -31,7 +31,7 @@ export class PollListComponent implements OnInit {
   /** SEARCH box */
   searchTerm = '';
 
-  /** SORT dropdown – new modes added */
+  /** SORT dropdown */
   selectedSort:
     | 'date-desc' | 'date-asc'
     | 'name-asc' | 'name-desc'
@@ -40,7 +40,7 @@ export class PollListComponent implements OnInit {
   /* ───────── derived list ───────── */
   get filteredPolls(): Poll[] {
     /* 1️⃣ status filter */
-    let list = this.filterByStatus(this.polls, this.selectedFilter);
+    let list = this.pollService.filterByStatus(this.polls, this.selectedFilter);
 
     /* 2️⃣ name search */
     if (this.searchTerm.trim()) {
@@ -49,9 +49,7 @@ export class PollListComponent implements OnInit {
     }
 
     /* 3️⃣ sorting */
-    list = [...list].sort((a, b) => this.sortFn(a, b, this.selectedSort));
-
-    return list;
+    return this.pollService.sortPolls(list, this.selectedSort);
   }
 
   /* ───────── lifecycle ───────── */
@@ -73,79 +71,21 @@ export class PollListComponent implements OnInit {
     }
   }
 
-  /* ───────── helpers ───────── */
-
-  private filterByStatus(polls: Poll[], status: string): Poll[] {
-    switch (status) {
-      case 'active':
-        return polls.filter(p => this.isPollActive(p));
-      case 'inactive':
-        return polls.filter(
-          p => !this.isPollActive(p) && this.getPollStatus(p) === 'Upcoming'
-        );
-      case 'closed':
-        return polls.filter(p => this.getPollStatus(p) === 'Ended');
-      default:
-        return polls;
-    }
-  }
-
-  private sortFn(a: Poll, b: Poll, mode: string): number {
-    switch (mode) {
-
-      /* ----- alphabetical ----- */
-      case 'name-asc':
-        return a.title.localeCompare(b.title, undefined, { sensitivity: 'base' });
-      case 'name-desc':
-        return b.title.localeCompare(a.title, undefined, { sensitivity: 'base' });
-
-      /* ----- by date created ----- */
-      case 'date-asc':
-        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-      case 'date-desc':
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-
-      /* ----- by popularity (totalVotes) ----- */
-      case 'votes-asc':   // least popular
-        return (a.totalVotes ?? 0) - (b.totalVotes ?? 0);
-      case 'votes-desc':  // most popular
-      default:
-        return (b.totalVotes ?? 0) - (a.totalVotes ?? 0);
-    }
-  }
-
-  /* ───────── poll-status utilities ───────── */
+  /* ───────── delegates for the template ───────── */
 
   isPollActive(poll: Poll): boolean {
-    const now = new Date();
-    if (poll.startDate && new Date(poll.startDate) > now) return false;
-    if (poll.endDate   && new Date(poll.endDate)   < now) return false;
-    return true;
+    return this.pollService.isPollActive(poll);
   }
 
   getPollStatus(poll: Poll): 'Upcoming' | 'Active' | 'Ended' {
-    const now = new Date();
-    if (poll.startDate && new Date(poll.startDate) > now)  return 'Upcoming';
-    if (poll.endDate   && new Date(poll.endDate)   < now)  return 'Ended';
-    return 'Active';
+    return this.pollService.getPollStatus(poll);
   }
 
   getPollStatusClass(poll: Poll): string {
-    return `status-${this.getPollStatus(poll).toLowerCase()}`;
+    return this.pollService.getPollStatusClass(poll);
   }
 
   getTimeUntilEnd(poll: Poll): string | null {
-    if (!poll.endDate) return null;
-    const end = new Date(poll.endDate), now = new Date();
-    if (end <= now) return null;
-
-    const diffSec = Math.floor((end.getTime() - now.getTime()) / 1000);
-    const days  = Math.floor(diffSec / 86_400);
-    const hours = Math.floor((diffSec % 86_400) / 3_600);
-    const mins  = Math.floor((diffSec % 3_600)  / 60);
-
-    if (days  > 0) return `${days}d ${hours}h`;
-    if (hours > 0) return `${hours}h ${mins}m`;
-    return `${mins}m`;
+    return this.pollService.getTimeUntilEnd(poll);
   }
 }

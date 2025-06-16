@@ -38,8 +38,8 @@ export class CreatePollComponent implements OnInit {
     allowMultiple: [false],
     isPrivate:   [false],
     options:     this.fb.array([], Validators.minLength(2)),
-    startDate:   [null],
-    endDate:     [null],
+    startDate:   [{ value: null, disabled: false }],
+    endDate:     [{ value: null, disabled: false }],
   });
 
   /* ────────────────── ui state ────────────────── */
@@ -47,6 +47,8 @@ export class CreatePollComponent implements OnInit {
   errorMessage: string | null = null;
   editMode  = false;
   private pollId: string | null = null;
+  startLocked = false;
+  endLocked   = false;
 
   /* ------------------------------- getters ------------------------------- */
   get options(): FormArray {
@@ -89,6 +91,11 @@ export class CreatePollComponent implements OnInit {
           return;
         }
 
+        /* ─── lock dates if they are in the past ─── */
+        const now = Date.now();
+        this.startLocked = !!poll.startDate && new Date(poll.startDate).getTime() <= now;
+        this.endLocked   = !!poll.endDate   && new Date(poll.endDate).getTime() <= now;
+
         this.pollForm.patchValue({
           title:       poll.title,
           description: poll.description ?? '',
@@ -97,6 +104,9 @@ export class CreatePollComponent implements OnInit {
           startDate:   poll.startDate ?? null,
           endDate:     poll.endDate   ?? null,
         });
+
+        if (this.startLocked) this.pollForm.get('startDate')!.disable({ emitEvent: false });
+        if (this.endLocked)   this.pollForm.get('endDate')!.disable({ emitEvent: false });
 
         this.options.clear();
         if (poll.options?.length) {
@@ -151,16 +161,16 @@ export class CreatePollComponent implements OnInit {
   onSubmit(): void {
     if (this.pollForm.invalid || this.isLoading) return;
 
-    const fv: any = this.pollForm.value;
+    const raw = this.pollForm.getRawValue(); // includes disabled controls
 
     const pollPayload: Partial<Poll> = {
-      title:       fv.title,
-      description: fv.description,
-      isPrivate:   fv.isPrivate,
-      allowMultiple: fv.allowMultiple,
-      startDate:   fv.startDate ? new Date(fv.startDate).toISOString() : undefined,
-      endDate:     fv.endDate   ? new Date(fv.endDate).toISOString()   : undefined,
-      options:     fv.options.map((o: { text: string }, idx: number) => ({ id: `opt${idx}`, text: o.text })),
+      title:       raw.title,
+      description: raw.description,
+      isPrivate:   raw.isPrivate,
+      allowMultiple: raw.allowMultiple,
+      startDate:   raw.startDate ? new Date(raw.startDate).toISOString() : undefined,
+      endDate:     raw.endDate   ? new Date(raw.endDate).toISOString()   : undefined,
+      options:     raw.options.map((o: { text: string }, idx: number) => ({ id: `opt${idx}`, text: o.text })),
     };
 
     this.isLoading = true;
@@ -179,9 +189,13 @@ export class CreatePollComponent implements OnInit {
 
     request$.pipe(take(1)).subscribe(
       (result: any) => {
-        const navId = this.pollId ?? (typeof result === 'string' ? result : '');
         this.isLoading = false;
-        this.router.navigate(['/poll', navId]);
+        if (this.editMode) {
+          this.router.navigate(['/profile'], { queryParams: { tab: 'polls' } });
+        } else {
+          const navId = typeof result === 'string' ? result : '';
+          this.router.navigate(['/poll', navId]);
+        }
       },
       (err: any) => this.finishWithError(err.message ?? 'Failed to save poll'),
     );
