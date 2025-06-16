@@ -7,6 +7,18 @@
   <!-- ───────────── Filter UI ───────────── -->
   <div class="filter-container" *ngIf="!isLoading && !errorMessage">
     <label for="filterSelect" class="filter-label">Show:</label>
+    <input
+    type="text"
+    class="search-input"
+    placeholder="Search by name…"
+    [(ngModel)]="searchTerm" />
+
+  <select [(ngModel)]="selectedSort" class="sort-select">
+    <option value="date-desc">Newest</option>
+    <option value="date-asc">Oldest</option>
+    <option value="name-asc">Name A-Z</option>
+    <option value="name-desc">Name Z-A</option>
+  </select>
     <select id="filterSelect"
             [(ngModel)]="selectedFilter"
             class="filter-select">
@@ -15,7 +27,9 @@
       <option value="inactive">Inactive</option>
       <option value="closed">Closed</option>
     </select>
+    
   </div>
+
 
   <!-- ───────────── States ───────────── -->
   <div *ngIf="isLoading" class="loading-container">
