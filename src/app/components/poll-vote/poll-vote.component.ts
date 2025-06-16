@@ -7,6 +7,7 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { first, switchMap } from 'rxjs/operators';
 
 import { Poll } from '../../models/poll.model';
 import { PollService } from '../../services/poll.service';
@@ -20,89 +21,96 @@ import { AuthService } from '../../core/authentication/auth.service';
   styleUrl: './poll-vote.component.css',
 })
 export class PollVoteComponent implements OnInit {
+  /* ─────────────────── DI ─────────────────── */
   private pollService = inject(PollService);
-  private route = inject(ActivatedRoute);
   private authService = inject(AuthService);
-  private router = inject(Router);
-  private fb = inject(FormBuilder);
+  private route       = inject(ActivatedRoute);
+  private router      = inject(Router);
+  private fb          = inject(FormBuilder);
 
+  /* ────────────────── state ────────────────── */
   poll: Poll | null = null;
-  isLoading = true;
-  isSubmitting = false;
-  errorMessage = '';
-  hasVoted = false;
 
-  voteForm: FormGroup;
+  /** time-window flags */
+  hasStarted = true;
+  hasEnded   = false;
+
+  /** ui flags */
+  isLoading     = true;
+  isSubmitting  = false;
+  hasVoted      = false;
+  errorMessage  = '';
+
+  voteForm: FormGroup = this.fb.group({
+    selectedOption: ['', Validators.required],
+  });
   selectedOptions: string[] = [];
 
-  constructor() {
-    this.voteForm = this.fb.group({
-      selectedOption: ['', Validators.required],
-    });
-  }
-
-  ngOnInit() {
+  /* ────────────────── init ────────────────── */
+  ngOnInit(): void {
     const pollId = this.route.snapshot.paramMap.get('id');
     if (!pollId) {
-      this.errorMessage = 'Poll ID is missing';
-      this.isLoading = false;
+      this.finishWithError('Poll ID is missing');
       return;
     }
 
-    const user = this.authService.user.getValue();
+    const user = this.authService.user;
     if (!user) {
-      this.errorMessage = 'You must be logged in to vote.';
-      this.isLoading = false;
+      this.finishWithError('You must be logged in to vote.');
       return;
     }
 
-    this.pollService.getPollById(pollId).subscribe({
-      next: (poll) => {
-        if (!poll) {
-          this.errorMessage = 'Poll not found';
+    /* get poll, then check prior vote */
+    this.pollService
+      .getPollById(pollId)
+      .pipe(
+        switchMap((poll) => {
+          if (!poll) throw new Error('not-found');
+          this.poll = poll;
+          this.evaluateTimeWindow(poll);
+          return this.pollService.checkIfUserVoted(pollId, user.id);
+        }),
+        first()
+      )
+      .subscribe({
+        next: (voted) => {
+          this.hasVoted = voted;
           this.isLoading = false;
-          return;
-        }
-
-        this.poll = poll;
-
-        // Verificăm dacă userul a mai votat
-        this.pollService.checkIfUserVoted(pollId, user.id).subscribe({
-          next: (hasVoted) => {
-            this.hasVoted = hasVoted;
-            this.isLoading = false;
-          },
-          error: (err) => {
-            console.error(err);
-            this.errorMessage = 'Failed to verify vote status.';
-            this.isLoading = false;
-          },
-        });
-      },
-      error: (err) => {
-        this.errorMessage = 'Failed to load poll.';
-        this.isLoading = false;
-      },
-    });
+        },
+        error: (err) => {
+          console.error(err);
+          this.finishWithError(
+            err.message === 'not-found' ? 'Poll not found' : 'Failed to load poll.'
+          );
+        },
+      });
   }
 
-  onCheckboxChange(event: Event) {
-    const target = event.target as HTMLInputElement;
-    const optionId = target.value;
+  /* ─────────────── helpers ─────────────── */
+  private evaluateTimeWindow(poll: Poll) {
+    const now = new Date();
+    this.hasStarted =
+      !poll.startDate || new Date(poll.startDate) <= now;
+    this.hasEnded =
+      !!poll.endDate && new Date(poll.endDate) < now;
+  }
 
-    if (target.checked) {
-      this.selectedOptions.push(optionId);
-    } else {
-      this.selectedOptions = this.selectedOptions.filter(
-        (id) => id !== optionId
-      );
-    }
+  get votingOpen(): boolean {
+    return this.hasStarted && !this.hasEnded && !this.hasVoted;
+  }
+
+  onCheckboxChange(evt: Event) {
+    const ctrl = evt.target as HTMLInputElement;
+    const id   = ctrl.value;
+    this.selectedOptions = ctrl.checked
+      ? [...this.selectedOptions, id]
+      : this.selectedOptions.filter((o) => o !== id);
   }
 
   onSubmit() {
-    if (!this.poll) return;
+    if (!this.poll || !this.votingOpen || this.isSubmitting) return;
 
-    const user = this.authService.user.getValue();
+    const user = this.authService.user;
     if (!user) {
       this.errorMessage = 'You must be logged in to vote.';
       return;
@@ -110,21 +118,28 @@ export class PollVoteComponent implements OnInit {
 
     const optionIds = this.poll.allowMultiple
       ? this.selectedOptions
-      : [this.voteForm.get('selectedOption')?.value];
+      : [this.voteForm.get('selectedOption')!.value];
 
     if (optionIds.length === 0) return;
 
     this.isSubmitting = true;
 
-    this.pollService.submitVote(this.poll.id, user.id, optionIds).subscribe({
-      next: () => {
-        this.router.navigate(['/poll', this.poll!.id, 'results']);
-      },
-      error: (err) => {
-        console.error('Vote failed:', err);
-        this.errorMessage = 'Failed to submit vote.';
-        this.isSubmitting = false;
-      },
-    });
+    this.pollService
+      .submitVote(this.poll.id, user.id, optionIds)
+      .pipe(first())
+      .subscribe({
+        next: () =>
+          this.router.navigate(['/poll', this.poll!.id, 'results']),
+        error: (err) => {
+          console.error('Vote failed:', err);
+          this.errorMessage = 'Failed to submit vote.';
+          this.isSubmitting = false;
+        },
+      });
+  }
+
+  private finishWithError(msg: string) {
+    this.errorMessage = msg;
+    this.isLoading = false;
   }
 }

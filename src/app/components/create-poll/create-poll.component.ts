@@ -8,11 +8,11 @@ import {
 } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { PollService } from '../../services/poll.service';
-import { Poll, PollOption } from '../../models/poll.model';
-import { AuthService } from '../../core/authentication/auth.service';
-import { User } from '../../core/authentication/models/user.model';
 import { v4 as uuidv4 } from 'uuid';
+
+import { PollService } from '../../services/poll.service';
+import { Poll } from '../../models/poll.model';
+import { AuthService } from '../../core/authentication/auth.service';
 
 @Component({
   selector: 'app-create-poll',
@@ -22,149 +22,154 @@ import { v4 as uuidv4 } from 'uuid';
   styleUrl: './create-poll.component.css',
 })
 export class CreatePollComponent {
-  private fb = inject(FormBuilder);
-  private router = inject(Router);
+  /* ─────────────────── DI ─────────────────── */
+  private fb          = inject(FormBuilder);
+  private router      = inject(Router);
   private pollService = inject(PollService);
   private authService = inject(AuthService);
 
-  pollForm: FormGroup = this.fb.group({
-    title: ['', [Validators.required, Validators.minLength(5)]],
-    description: [''],
-    options: this.fb.array(
-      [this.createOption(), this.createOption()],
-      Validators.minLength(2)
-    ),
-    allowMultiple: [false],
-    isPrivate: [false],
-  });
+  /* ────────────────── form ────────────────── */
+  pollForm: FormGroup = this.fb.group(
+    {
+      title: ['', [Validators.required, Validators.minLength(5)]],
+      description: [''],
+      options: this.fb.array(
+        [this.createOption(), this.createOption()],
+        Validators.minLength(2)
+      ),
+      allowMultiple: [false],
+      isPrivate: [false],
+      startDate: [null],         // ISO string via datetime-local
+      endDate: [null],
+    },
+    { validators: this.dateRangeValidator.bind(this) }
+  );
 
-  isLoading = false;
+  /* ────────────────── ui state ────────────────── */
+  isLoading   = false;
   errorMessage = '';
 
+  /* ───────── getters ───────── */
   get options() {
     return this.pollForm.get('options') as FormArray;
   }
 
-  dateRangeValidator(form: FormGroup) {
-    const startDate = form.get("startDate")?.value
-    const endDate = form.get("endDate")?.value
-
-    if (startDate && endDate) {
-      const start = new Date(startDate)
-      const end = new Date(endDate)
-      const now = new Date()
-
-      // Check if start date is in the past
-      if (start < now) {
-        return { startDateInPast: true }
-      }
-
-      // Check if end date is before start date
-      if (end <= start) {
-        return { endDateBeforeStart: true }
-      }
-    }
-
-    return null
-  }
-
-  // Get minimum date for date inputs (today)
-  getMinDate(): string {
-    const today = new Date()
-    return today.toISOString().split("T")[0]
-  }
-
-  // Get minimum end date (start date + 1 day)
-  getMinEndDate(): string {
-    const startDate = this.pollForm.get("startDate")?.value
-    if (startDate) {
-      const minEndDate = new Date(startDate)
-      minEndDate.setDate(minEndDate.getDate() + 1)
-      return minEndDate.toISOString().split("T")[0]
-    }
-    return this.getMinDate()
-  }
-
-  createOption(): FormGroup {
-    return this.fb.group({
-      text: ['', Validators.required],
-    });
+  /* ───────── helpers ───────── */
+  private createOption() {
+    return this.fb.group({ text: ['', Validators.required] });
   }
 
   addOption() {
     this.options.push(this.createOption());
   }
-
-  removeOption(index: number) {
-    this.options.removeAt(index);
+  removeOption(i: number) {
+    this.options.removeAt(i);
   }
 
+  /* ===== date logic ===== */
+  private dateRangeValidator(form: FormGroup) {
+    const startRaw = form.get('startDate')!.value as string | null;
+    const endRaw   = form.get('endDate')!.value   as string | null;
+
+    const now = new Date();
+
+    /* only start typed */
+    if (startRaw && !endRaw) {
+      const start = new Date(startRaw);
+      return start < now ? { startDateInPast: true } : null;
+    }
+
+    /* only end typed */
+    if (!startRaw && endRaw) {
+      const end = new Date(endRaw);
+      return end < now ? { endDateInPast: true } : null;
+    }
+
+    /* both typed */
+    if (startRaw && endRaw) {
+      const start = new Date(startRaw);
+      const end   = new Date(endRaw);
+
+      if (start < now)       return { startDateInPast: true };
+      if (end   < start)     return { endDateBeforeStart: true };
+      return null;
+    }
+
+    return null; // neither field set
+  }
+
+  getMinDateTime(): string {
+    return new Date().toISOString().slice(0, 16); // yyyy-MM-ddTHH:mm
+  }
+  getMinEndDateTime(): string {
+    const startRaw = this.pollForm.get('startDate')!.value as string | null;
+    if (!startRaw) return this.getMinDateTime();
+
+    const min = new Date(startRaw);
+    min.setMinutes(min.getMinutes() + 1); // at least 1 min later
+    return min.toISOString().slice(0, 16);
+  }
+
+  /* ───────── submit ───────── */
   onSubmit() {
     if (this.pollForm.invalid) return;
 
-    this.isLoading = true;
+    this.isLoading   = true;
     this.errorMessage = '';
 
-    const currentUser = this.authService.user.getValue();
-
+    const currentUser = this.authService.user;
     if (!currentUser) {
-      this.isLoading = false;
-      this.errorMessage = 'You must be logged in to create a poll.';
+      this.finishWithError('You must be logged in to create a poll.');
       return;
     }
 
-    const formValue = this.pollForm.value;
-
-    const isPrivate = formValue.isPrivate;
-    const customPollId = isPrivate ? `private-${uuidv4().slice(0, 10)}` : null;
+    const fv = this.pollForm.value;
+    const isPrivate     = fv.isPrivate;
+    const customPollId  = isPrivate ? `private-${uuidv4().slice(0, 10)}` : undefined;
 
     const newPoll: Poll = {
-      id: customPollId ?? '', // dacă nu e privat, id-ul va fi generat în service
-      title: formValue.title,
-      description: formValue.description,
-      options: formValue.options.map((opt: { text: string }, i: number) => ({
-        id: 'opt-' + i,
-        text: opt.text,
-      })),
-      allowMultiple: formValue.allowMultiple,
+      id: customPollId ?? '',               // Firestore will generate if ''
+      title: fv.title,
+      description: fv.description,
+      options: fv.options.map(
+        (o: { text: string }, i: number) => ({ id: `opt-${i}`, text: o.text })
+      ),
+      allowMultiple: fv.allowMultiple,
       isPrivate,
       createdAt: new Date().toISOString(),
       createdBy: currentUser.email,
       totalVotes: 0,
+      startDate: fv.startDate ?? null,
+      endDate:   fv.endDate   ?? null,
     };
 
-    this.pollService.createPoll(newPoll, customPollId!).subscribe({
+    this.pollService.createPoll(newPoll, customPollId).subscribe({
       next: (pollId) => {
-        // 🔹 Dacă e privat, îl salvăm și în savedPrivatePolls/{userId}/{pollId}
         if (isPrivate) {
           this.pollService
             .savePrivatePollForUser(currentUser.id, pollId)
             .subscribe({
-              next: () => {
-                this.isLoading = false;
-                this.router.navigate(['/poll', pollId]);
-              },
-              error: (err) => {
-                console.error(
-                  'Poll created, but failed to save private link:',
-                  err
-                );
-                this.errorMessage =
-                  'Poll was created but not linked to your account.';
-                this.isLoading = false;
-                this.router.navigate(['/poll', pollId]);
-              },
+              next: () => this.navigateDone(pollId),
+              error: () => this.navigateDone(pollId, true),
             });
         } else {
-          this.isLoading = false;
-          this.router.navigate(['/poll', pollId]);
+          this.navigateDone(pollId);
         }
       },
-      error: (err) => {
-        console.error('Poll creation error:', err);
-        this.isLoading = false;
-        this.errorMessage = 'Something went wrong while creating the poll.';
-      },
+      error: () => this.finishWithError('Something went wrong while creating the poll.'),
     });
+  }
+
+  /* ───────── util ───────── */
+  private navigateDone(id: string, warn = false) {
+    if (warn)
+      this.errorMessage = 'Poll created but not linked to your account.';
+    this.isLoading = false;
+    this.router.navigate(['/poll', id]);
+  }
+
+  private finishWithError(msg: string) {
+    this.errorMessage = msg;
+    this.isLoading = false;
   }
 }

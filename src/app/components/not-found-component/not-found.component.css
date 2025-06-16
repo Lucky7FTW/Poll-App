@@ -1,0 +1,36 @@
+:host {
+  min-height: 70vh;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 2rem;
+}
+
+.code {
+  font-size: clamp(3rem, 8vw, 8rem);
+  font-weight: 800;
+  color: #8b5cf6;          /* indigo-400 */
+  margin: 0;
+}
+
+.msg {
+  font-size: 1.25rem;
+  color: #4b5563;          /* gray-600 */
+  margin: 0;
+}
+
+.home-btn {
+  display: inline-block;
+  margin-top: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  background: #8b5cf6;     /* indigo-400 */
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.home-btn:hover {
+  background: #6d28d9;     /* indigo-600 */
+}

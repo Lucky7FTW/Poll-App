@@ -1,66 +1,112 @@
 <div class="poll-list-container">
-    <div class="list-header">
-        <h2 class="list-title">All Polls</h2>
-        <a routerLink="/create" class="create-button">Create New Poll</a>
-    </div>
+  <!-- ───────────── Header ───────────── -->
+  <div class="list-header">
+    <h2 class="list-title">All Polls</h2>
+    <a routerLink="/create" class="create-button">Create New Poll</a>
+  </div>
 
-    <div *ngIf="isLoading" class="loading-container">
-        <div class="loading-spinner"></div>
-    </div>
+  <!-- ───────────── Unified filter row ───────────── -->
+  <div class="filter-container" *ngIf="!isLoading && !errorMessage">
+    <!-- search by title -->
+    <input
+      type="text"
+      class="search-input"
+      placeholder="Search by name…"
+      [(ngModel)]="searchTerm" />
 
-    <div *ngIf="errorMessage" class="error-message">
-        {{ errorMessage }}
-    </div>
+    <!-- sort selector -->
+    <select [(ngModel)]="selectedSort" class="sort-select">
+      <option value="date-desc">Newest</option>
+      <option value="date-asc">Oldest</option>
+      <option value="name-asc">Name A-Z</option>
+      <option value="name-desc">Name Z-A</option>
+      <option value="votes-desc">Most popular</option>  <!-- NEW -->
+      <option value="votes-asc">Least popular</option> <!-- NEW -->
+    </select>
 
-    <div *ngIf="!isLoading && !errorMessage && polls.length === 0" class="empty-state">
-        <p class="empty-message">No polls found</p>
-        <a routerLink="/create" class="create-button">Create Your First Poll</a>
-    </div>
+    <!-- status filter -->
+    <label for="statusSelect" class="filter-label">Show:</label>
+    <select id="statusSelect"
+            [(ngModel)]="selectedFilter"
+            class="filter-select">
+      <option value="all">All</option>
+      <option value="active">Active</option>
+      <option value="inactive">Upcoming</option>
+      <option value="closed">Ended</option>
+    </select>
+  </div>
 
-    <div *ngIf="!isLoading && polls.length > 0" class="polls-grid">
-        <div *ngFor="let poll of polls" class="poll-card">
-            <div class="poll-content">
-                <div class="poll-info">
-                    <h3 class="poll-title">
-                        <a [routerLink]="['/poll', poll.id]">{{ poll.title }}</a>
-                    </h3>
-                    <p *ngIf="poll.description" class="poll-description">{{ poll.description }}</p>
+  <!-- ───────────── States ───────────── -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loading-spinner"></div>
+  </div>
 
-                    <!-- Poll Schedule Information -->
-                    <div *ngIf="poll.startDate || poll.endDate" class="poll-schedule">
-                        <div *ngIf="poll.startDate" class="schedule-item">
-                            <span class="schedule-icon">🚀</span>
-                            <span class="schedule-label">Starts:</span>
-                            <span class="schedule-date">{{ poll.startDate | date:'medium' }}</span>
-                        </div>
-                        <div *ngIf="poll.endDate" class="schedule-item">
-                            <span class="schedule-icon">🏁</span>
-                            <span class="schedule-label">Ends:</span>
-                            <span class="schedule-date">{{ poll.endDate | date:'medium' }}</span>
-                        </div>
-                    </div>
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
 
-                    <!-- Poll Status -->
-                    <div class="poll-status">
-                        <span [ngClass]="getPollStatusClass(poll)" class="status-badge">
-                            {{ getPollStatus(poll) }}
-                        </span>
-                    </div>
+  <div *ngIf="!isLoading && !errorMessage && filteredPolls.length === 0"
+       class="empty-state">
+    <p class="empty-message">No polls found</p>
+    <a routerLink="/create" class="create-button">Create Your First Poll</a>
+  </div>
 
-                    <div class="poll-meta">
-                        Created by {{ poll.createdBy }} · {{ poll.createdAt | date:'medium' }}
-                    </div>
-                </div>
-                <div class="poll-stats">
-                    <span class="vote-count">{{ poll.totalVotes }} votes</span>
-                    <div class="poll-actions">
-                        <a [routerLink]="['/poll', poll.id]" class="action-link" [class.disabled]="!isPollActive(poll)">
-                            Vote
-                        </a>
-                        <a [routerLink]="['/poll', poll.id, 'results']" class="action-link">Results</a>
-                    </div>
-                </div>
+  <!-- ───────────── Poll cards ───────────── -->
+  <div *ngIf="!isLoading && filteredPolls.length > 0" class="polls-grid">
+    <div *ngFor="let poll of filteredPolls" class="poll-card">
+      <div class="poll-content">
+        <div class="poll-info">
+          <h3 class="poll-title">
+            <a [routerLink]="['/poll', poll.id]">{{ poll.title }}</a>
+          </h3>
+
+          <p *ngIf="poll.description" class="poll-description">
+            {{ poll.description }}
+          </p>
+
+          <!-- Schedule -->
+          <div *ngIf="poll.startDate || poll.endDate" class="poll-schedule">
+            <div *ngIf="poll.startDate" class="schedule-item">
+              <span class="schedule-icon">🚀</span>
+              <span class="schedule-label">Starts:</span>
+              <span class="schedule-date">{{ poll.startDate | date : 'medium' }}</span>
             </div>
+            <div *ngIf="poll.endDate" class="schedule-item">
+              <span class="schedule-icon">🏁</span>
+              <span class="schedule-label">Ends:</span>
+              <span class="schedule-date">{{ poll.endDate | date : 'medium' }}</span>
+            </div>
+          </div>
+
+          <!-- Status badge -->
+          <div class="poll-status">
+            <span [ngClass]="getPollStatusClass(poll)" class="status-badge">
+              {{ getPollStatus(poll) }}
+            </span>
+          </div>
+
+          <div class="poll-meta">
+            Created by {{ poll.createdBy }} &middot;
+            {{ poll.createdAt | date : 'medium' }}
+          </div>
         </div>
+
+        <!-- Votes + actions -->
+        <div class="poll-stats">
+          <span class="vote-count">{{ poll.totalVotes }} votes</span>
+          <div class="poll-actions">
+            <a [routerLink]="['/poll', poll.id]"
+               class="action-link"
+               [class.disabled]="!isPollActive(poll)">
+              Vote
+            </a>
+            <a [routerLink]="['/poll', poll.id, 'results']"
+               class="action-link">
+              Results
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 </div>

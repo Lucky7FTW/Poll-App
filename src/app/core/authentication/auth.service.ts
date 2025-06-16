@@ -1,140 +1,99 @@
-import { HttpClient } from '@angular/common/http';
+// src/app/core/authentication/auth.service.ts
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { BehaviorSubject, map, switchMap, tap } from 'rxjs';
-import { User } from './models/user.model';
-import { AuthResponseData } from './models/auth.model';
-import { firebaseConfig } from '../../../environment';
+import { BehaviorSubject, from } from 'rxjs';
+import { tap } from 'rxjs/operators';
 
-@Injectable({
-  providedIn: 'root',
-})
+import {
+  Auth,
+  authState,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  sendPasswordResetEmail,
+  sendEmailVerification,
+  User as FirebaseUser,
+} from '@angular/fire/auth';
+
+/* ──────────────────────────────
+ * App-level user model
+ * ──────────────────────────────*/
+export interface AppUser {
+  id: string;
+  email: string;
+  displayName?: string | null;
+  photoURL?: string | null;
+}
+
+@Injectable({ providedIn: 'root' })
 export class AuthService {
-  private apiKey = firebaseConfig.apiKey;
-  user = new BehaviorSubject<User | null>(null);
+  /** Emits `null` when logged-out, otherwise the current user */
+  readonly user$ = new BehaviorSubject<AppUser | null>(null);
 
-  constructor(private http: HttpClient, private router: Router) {
-    this.autoLogin();
+  /** Synchronous snapshot getter (useful in guards) */
+  get user(): AppUser | null {
+    return this.user$.getValue();
   }
 
-  getId() {
-    return this.user.getValue()?.id;
+  constructor(private auth: Auth, private router: Router) {
+    this.initAuthListener();
   }
+  
+  login(email: string, password: string, remember = true) {
+    const persistence = remember
+      ? browserLocalPersistence   // IndexedDB – survives refresh/quit
+      : browserSessionPersistence; // cleared on tab close
 
-  signup(email: string, password: string) {
-    return this.http
-      .post<AuthResponseData>(
-        `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${this.apiKey}`,
-        {
-          email: email,
-          password: password,
-          returnSecureToken: true,
-        }
+    return from(
+      setPersistence(this.auth, persistence).then(() =>
+        signInWithEmailAndPassword(this.auth, email, password)
       )
-      .pipe(
-        tap((response) => {
-          this.sendVerificationEmail(response.idToken).subscribe();
-        })
-      );
+    );
   }
 
-  login(email: string, password: string) {
-    return this.http
-      .post<AuthResponseData>(
-        `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${this.apiKey}`,
-        {
-          email,
-          password,
-          returnSecureToken: true,
-        }
-      )
-      .pipe(
-        switchMap((response) => {
-          // Chaining: lookup email verification status
-          return this.http
-            .post<any>(
-              `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${this.apiKey}`,
-              {
-                idToken: response.idToken,
-              }
-            )
-            .pipe(
-              map((lookupResponse) => {
-                const userInfo = lookupResponse.users?.[0];
-                if (userInfo?.emailVerified) {
-                  this.handleAuthentication(
-                    response.email,
-                    response.localId,
-                    response.idToken,
-                    +response.expiresIn
-                  );
-                  return response;
-                } else {
-                  alert('Please verify your email before logging in.');
-                  this.logout();
-                  throw new Error('Email not verified');
-                }
-              })
-            );
-        })
-      );
+  /** Creates an account and sends a verification e-mail. */
+  register(email: string, password: string) {
+    return from(createUserWithEmailAndPassword(this.auth, email, password)).pipe(
+      tap(({ user }) => sendEmailVerification(user))
+    );
   }
 
+  /** Sends a password-reset link. */
   resetPassword(email: string) {
-    return this.http.post(
-      `https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${this.apiKey}`,
-      {
-        requestType: 'PASSWORD_RESET',
-        email: email,
-      }
-    );
+    return from(sendPasswordResetEmail(this.auth, email));
   }
 
+  /** Logs out and navigates to `/login`. */
   logout() {
-    this.user.next(null);
-    this.router.navigate(['/']);
-  }
-
-  sendVerificationEmail(idToken: string) {
-    return this.http.post(
-      `https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${this.apiKey}`,
-      {
-        requestType: 'VERIFY_EMAIL',
-        idToken,
-      }
+    return from(signOut(this.auth)).pipe(
+      tap(() => this.router.navigate(['/login']))
     );
   }
 
-  private handleAuthentication(
-    email: string,
-    userId: string,
-    token: string,
-    expiresIn: number
-  ) {
-    const expirationDate = new Date(new Date().getTime() + expiresIn * 1000);
-    const user = new User(email, userId, token, expirationDate);
-    this.user.next(user);
-    // localStorage.setItem('userData', JSON.stringify(user)); // Store user in local storage
-  }
+  private initAuthListener() {
+    const cached = localStorage.getItem('app_user');
+    if (cached) this.user$.next(JSON.parse(cached) as AppUser);
 
-  autoLogin() {
-    // const userData: {
-    //   email: string;
-    //   id: string;
-    //   _token: string;
-    //   _tokenExpirationDate: string;
-    // } = JSON.parse(localStorage.getItem('userData')!);
-    // if (!userData) {
-    //   return;
-    // }
-    // const loadedUser = new User(
-    //   userData.email,
-    //   userData.id,
-    //   userData._token,
-    //   new Date(userData._tokenExpirationDate)
-    // );
-    // if (loadedUser.token) {
-    //   this.user.next(loadedUser);
-    // }
+    authState(this.auth).subscribe((fbUser) => {
+      if (fbUser) {
+        const appUser = this.toAppUser(fbUser);
+        this.user$.next(appUser);
+        localStorage.setItem('app_user', JSON.stringify(appUser));
+      } else {
+        this.user$.next(null);
+        localStorage.removeItem('app_user');
+      }
+    });
+  }
+  private toAppUser(fb: FirebaseUser): AppUser {
+    return {
+      id: fb.uid,
+      email: fb.email ?? '',
+      displayName: fb.displayName,
+      photoURL: fb.photoURL,
+    };
   }
 }
