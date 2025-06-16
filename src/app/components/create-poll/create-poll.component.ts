@@ -27,7 +27,8 @@ export class CreatePollComponent {
   private pollService = inject(PollService);
   private authService = inject(AuthService);
 
-  pollForm: FormGroup = this.fb.group({
+  pollForm: FormGroup = this.fb.group(
+  {
     title: ['', [Validators.required, Validators.minLength(5)]],
     description: [''],
     options: this.fb.array(
@@ -36,7 +37,11 @@ export class CreatePollComponent {
     ),
     allowMultiple: [false],
     isPrivate: [false],
-  });
+    startDate: [null],
+    endDate: [null],
+  },
+  { validators: this.dateRangeValidator.bind(this) }
+);
 
   isLoading = false;
   errorMessage = '';
