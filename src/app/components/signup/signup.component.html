@@ -1,5 +1,6 @@
 <div class="auth-container">
   <div class="auth-card">
+    <!-- ───────── Header ───────── -->
     <div class="auth-header">
       <h1 class="auth-title">Create Your Account</h1>
       <p class="auth-subtitle">
@@ -7,16 +8,21 @@
       </p>
     </div>
 
-    <form (ngSubmit)="onSubmit()" #signupForm="ngForm" class="auth-form">
+    <!-- ───────── Form ───────── -->
+    <form
+      [formGroup]="signupForm"
+      (ngSubmit)="onSubmit()"
+      class="auth-form"
+      novalidate
+    >
+      <!-- names -->
       <div class="form-row">
         <div class="form-group">
           <label for="firstName" class="form-label">First Name</label>
           <input
-            type="text"
             id="firstName"
-            name="firstName"
-            [(ngModel)]="signupData.firstName"
-            required
+            type="text"
+            formControlName="firstName"
             class="form-input"
             placeholder="First name"
             autocomplete="given-name"
@@ -26,11 +32,9 @@
         <div class="form-group">
           <label for="lastName" class="form-label">Last Name</label>
           <input
-            type="text"
             id="lastName"
-            name="lastName"
-            [(ngModel)]="signupData.lastName"
-            required
+            type="text"
+            formControlName="lastName"
             class="form-input"
             placeholder="Last name"
             autocomplete="family-name"
@@ -38,31 +42,27 @@
         </div>
       </div>
 
+      <!-- email -->
       <div class="form-group">
         <label for="email" class="form-label">Email Address</label>
         <input
-          type="email"
           id="email"
-          name="email"
-          [(ngModel)]="signupData.email"
-          required
-          email
+          type="email"
+          formControlName="email"
           class="form-input"
-          placeholder="your@email.com"
+          placeholder="you@email.com"
           autocomplete="email"
         />
       </div>
 
+      <!-- password -->
       <div class="form-group">
         <label for="password" class="form-label">Password</label>
         <div class="password-input-container">
           <input
-            [type]="showPassword ? 'text' : 'password'"
             id="password"
-            name="password"
-            [(ngModel)]="signupData.password"
-            required
-            minlength="8"
+            [type]="showPassword ? 'text' : 'password'"
+            formControlName="password"
             class="form-input"
             placeholder="Create password"
             autocomplete="new-password"
@@ -70,26 +70,22 @@
           <button
             type="button"
             class="password-toggle"
-            (click)="togglePasswordVisibility()"
+            (click)="togglePassword()"
             [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
           >
-            <span
-              class="password-toggle-icon"
-              [class.show]="showPassword"
-            ></span>
+            <span class="password-toggle-icon" [class.show]="showPassword"></span>
           </button>
         </div>
       </div>
 
+      <!-- confirm -->
       <div class="form-group">
-        <label for="confirmPassword" class="form-label">Confirm Password</label>
+        <label for="confirm" class="form-label">Confirm Password</label>
         <div class="password-input-container">
           <input
+            id="confirm"
             [type]="showConfirmPassword ? 'text' : 'password'"
-            id="confirmPassword"
-            name="confirmPassword"
-            [(ngModel)]="signupData.confirmPassword"
-            required
+            formControlName="confirm"
             class="form-input"
             placeholder="Confirm password"
             autocomplete="new-password"
@@ -97,7 +93,7 @@
           <button
             type="button"
             class="password-toggle"
-            (click)="toggleConfirmPasswordVisibility()"
+            (click)="toggleConfirmPassword()"
             [attr.aria-label]="
               showConfirmPassword ? 'Hide password' : 'Show password'
             "
@@ -110,9 +106,19 @@
         </div>
       </div>
 
+      <!-- mismatch error -->
+      <p class="form-error" *ngIf="signupForm.hasError('mismatch')">
+        Passwords don’t match.
+      </p>
+
+      <!-- terms -->
       <div class="terms-section">
         <label class="checkbox-container">
-          <input type="checkbox" required class="checkbox-input" />
+          <input
+            type="checkbox"
+            formControlName="terms"
+            class="checkbox-input"
+          />
           <span class="checkbox-checkmark"></span>
           <span class="checkbox-label">
             I agree to the
@@ -121,33 +127,37 @@
             <a href="#" class="terms-link">Privacy Policy</a>
           </span>
         </label>
+        <p class="form-error" *ngIf="signupForm.get('terms')?.invalid && signupForm.touched">
+          You must accept the terms.
+        </p>
       </div>
 
+      <!-- submit -->
       <button
         type="submit"
         class="auth-button primary-button"
-        [disabled]="!signupForm.form.valid"
+        [disabled]="signupForm.invalid || isLoading"
       >
-        Create Account
+        <span *ngIf="isLoading">Creating account…</span>
+        <span *ngIf="!isLoading">Create Account</span>
       </button>
     </form>
 
-    <div class="divider">
-      <span class="divider-text">or</span>
-    </div>
+    <!-- divider / social logins (unchanged) -->
+    <div class="divider"><span class="divider-text">or</span></div>
 
     <div class="social-login">
       <button type="button" class="social-button google-button">
         <span class="social-icon google-icon"></span>
         Continue with Google
       </button>
-
       <button type="button" class="social-button github-button">
         <span class="social-icon github-icon"></span>
         Continue with GitHub
       </button>
     </div>
 
+    <!-- footer -->
     <div class="auth-footer">
       <p class="auth-footer-text">
         Already have an account?
@@ -157,8 +167,8 @@
   </div>
 </div>
 
-<div *ngIf="errorMessage" class="error-message">
-  {{ errorMessage }}
+<!-- global feedback -->
+<p class="error-message" *ngIf="errorMessage">{{ errorMessage }}</p>
+<div class="loading-indicator" *ngIf="isLoading">
+  Creating your account…
 </div>
-
-<div *ngIf="isLoading" class="loading-indicator">Creating your account...</div>

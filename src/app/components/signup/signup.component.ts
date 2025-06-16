@@ -1,68 +1,93 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { AuthService } from '../../core/authentication/auth.service'; // Ajustează calea dacă e diferită
+
+import { AuthService } from '../../core/authentication/auth.service';
 
 @Component({
   selector: 'app-signup',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './signup.component.html',
   styleUrls: ['./signup.component.css'],
 })
 export class SignupComponent {
-  constructor(private authService: AuthService, private router: Router) {}
+  /* ─────────── DI ─────────── */
+  private fb          = inject(FormBuilder);
+  private router      = inject(Router);
+  private authService = inject(AuthService);
 
-  signupData = {
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  };
+  /* ─────────── form ─────────── */
+  signupForm: FormGroup = this.fb.group(
+    {
+      firstName: ['', Validators.required],
+      lastName:  ['', Validators.required],
+      email:     ['', [Validators.required, Validators.email]],
+      password:  ['', [Validators.required, Validators.minLength(6)]],
+      confirm:   ['', Validators.required],
+    },
+    { validators: this.passwordsMatch }
+  );
 
-  showPassword = false;
-  showConfirmPassword = false;
-  errorMessage = '';
-  isLoading = false;
+  /* ─────────── ui state ─────────── */
+  showPassword         = false;
+  showConfirmPassword  = false;
+  errorMessage         = '';
+  isLoading            = false;
 
+  /* ===== password matcher ===== */
+  private passwordsMatch(g: FormGroup) {
+    const pass = g.get('password')!.value;
+    const conf = g.get('confirm')!.value;
+    return pass === conf ? null : { mismatch: true };
+  }
+
+  /* ─────────── submit ─────────── */
   onSubmit() {
-    console.log('Submit triggered'); // Verificare 1
-    console.log('Form data:', this.signupData); // Verificare 2
+    if (this.signupForm.invalid || this.isLoading) return;
 
     this.errorMessage = '';
+    this.isLoading    = true;
 
-    if (this.signupData.password !== this.signupData.confirmPassword) {
-      this.errorMessage = "Passwords don't match.";
-      console.warn(this.errorMessage); // Verificare 3
-      return;
-    }
-
-    this.isLoading = true;
+    const { email, password } = this.signupForm.value;
 
     this.authService
-      .signup(this.signupData.email, this.signupData.password)
+      .register(email, password)   // sends verification e-mail
       .subscribe({
-        next: (res) => {
-          console.log('Signup successful:', res); // Verificare 4
+        next: () => {
           this.isLoading = false;
-          this.router.navigate(['/login']); // sau altă pagină
+          // You could display a toast like “Check your inbox to verify your e-mail”
+          this.router.navigate(['/login']);
         },
         error: (err) => {
-          console.error('Signup error:', err); // Verificare 5
+          console.error('Signup error:', err);
           this.isLoading = false;
-          this.errorMessage =
-            err.error?.error?.message || 'Signup failed. Try again.';
+          this.errorMessage = this.friendlyError(err);
         },
       });
   }
 
-  togglePasswordVisibility() {
-    this.showPassword = !this.showPassword;
+  /* friendlier error messages */
+  private friendlyError(err: any): string {
+    const code = err?.code || err?.error?.error?.message || '';
+    switch (code) {
+      case 'auth/email-already-in-use':
+      case 'EMAIL_EXISTS':
+        return 'This e-mail is already registered.';
+      case 'auth/weak-password':
+        return 'Password is too weak (min 6 characters).';
+      default:
+        return 'Signup failed. Please try again.';
+    }
   }
 
-  toggleConfirmPasswordVisibility() {
-    this.showConfirmPassword = !this.showConfirmPassword;
-  }
+  /* ─────────── helpers for template ─────────── */
+  togglePassword()        { this.showPassword        = !this.showPassword; }
+  toggleConfirmPassword() { this.showConfirmPassword = !this.showConfirmPassword; }
 }
