@@ -5,10 +5,11 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';   // ⬅️ Angular 16+
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
+
 import { AuthService } from '../../core/authentication/auth.service';
-import { User } from '../../core/authentication/models/user.model';
 
 @Component({
   selector: 'app-header',
@@ -18,61 +19,53 @@ import { User } from '../../core/authentication/models/user.model';
   styleUrl: './header.component.css',
 })
 export class HeaderComponent {
-  private authService = inject(AuthService);
+  /* ─────────── DI ─────────── */
+  private auth = inject(AuthService);
 
+  /* ─────────── state ─────────── */
   isMenuOpen = false;
   isScrolled = false;
 
-  userSignal = signal<User | null>(null); // nou
+  /** bind Firebase user stream → signal */
+  readonly userSignal = toSignal(this.auth.user$, { initialValue: null });
 
-  @HostListener('window:scroll', ['$event'])
-  onWindowScroll() {
-    this.isScrolled = window.pageYOffset > 20;
+  /* logged-in helpers */
+  readonly isLoggedIn  = computed(() => !!this.userSignal());
+  readonly currentUser = this.userSignal;           // alias for template
+
+  /* ─────────── scroll / click ─────────── */
+  @HostListener('window:scroll')
+  onScroll() {
+    this.isScrolled = window.scrollY > 20;
   }
 
   @HostListener('document:click', ['$event'])
-  onDocumentClick(event: Event) {
-    const target = event.target as HTMLElement;
+  closeOnOutsideClick(event: Event) {
+    const el = event.target as HTMLElement;
     if (
-      !target.closest('.header-nav') &&
-      !target.closest('.mobile-menu-button')
+      !el.closest('.header-nav') &&
+      !el.closest('.mobile-menu-button')
     ) {
       this.isMenuOpen = false;
     }
   }
 
-  toggleMenu() {
-    this.isMenuOpen = !this.isMenuOpen;
-  }
-
-  closeMenu() {
-    this.isMenuOpen = false;
-  }
-
-  // Aflăm dacă userul este logat:
-  isLoggedIn = computed(() => !!this.userSignal());
-
-  currentUser = computed(() => this.userSignal());
-
-  ngOnInit() {
-    this.authService.user.subscribe((user) => {
-      this.userSignal.set(user);
-    });
-  }
+  toggleMenu()  { this.isMenuOpen = !this.isMenuOpen; }
+  closeMenu()   { this.isMenuOpen = false; }
 
   logout() {
-    this.authService.logout();
+    this.auth.logout();
     this.closeMenu();
   }
 
+  /* ─────────── UI helpers ─────────── */
   getUserInitials(): string {
     const email = this.currentUser()?.email || '';
-    const namePart = email.split('@')[0];
-    return namePart.length >= 2 ? namePart.slice(0, 2).toUpperCase() : 'U';
+    const name  = email.split('@')[0] || '';
+    return name.slice(0, 2).toUpperCase() || 'U';
   }
 
   getUserFirstName(): string {
-    const email = this.currentUser()?.email || '';
-    return email.split('@')[0];
+    return (this.currentUser()?.email || '').split('@')[0];
   }
 }

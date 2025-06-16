@@ -10,6 +10,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { getDatabase, provideDatabase } from '@angular/fire/database';
 import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { firebaseConfig } from '../environment';
+import { provideAuth, getAuth }         from '@angular/fire/auth';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -19,5 +20,6 @@ export const appConfig: ApplicationConfig = {
     provideClientHydration(withEventReplay()),
     provideFirebaseApp(() => initializeApp(firebaseConfig)),
     provideDatabase(() => getDatabase()),
+    provideAuth(()      => getAuth()),
   ],
 };
