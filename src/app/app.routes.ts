@@ -12,6 +12,7 @@ import { TermsComponent } from './components/footer/terms/terms.component';
 import { PrivacyComponent } from './components/footer/privacy/privacy.component';
 import { UserProfileComponent } from './components/user-profile/user-profile.component';
 import { AuthGuard } from './core/authentication/auth.guard';
+import { PollExistsGuard } from './core/authentication/models/poll-exists.guard';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -26,8 +27,8 @@ export const routes: Routes = [
     component: PrivatePollsComponent,
     //canActivate: [authGuard],
   },
-  { path: 'poll/:id', component: PollVoteComponent },
-  { path: 'poll/:id/results', component: PollResultsComponent },
+  { path: 'poll/:id', component: PollVoteComponent, canActivate: [PollExistsGuard]},
+  { path: 'poll/:id/results', component: PollResultsComponent, canActivate: [PollExistsGuard] },
   { path: 'login', component: LoginComponent },
   { path: 'signup', component: SignupComponent },
   { path: 'contact', component: ContactComponent },
@@ -38,5 +39,6 @@ export const routes: Routes = [
     component: UserProfileComponent,
     //canActivate: [authGuard],
   },
+  { path: '404', component: NotFoundComponent },
   { path: '**', redirectTo: '' },
 ];
