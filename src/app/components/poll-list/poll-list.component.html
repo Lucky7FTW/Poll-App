@@ -1,66 +1,92 @@
 <div class="poll-list-container">
-    <div class="list-header">
-        <h2 class="list-title">All Polls</h2>
-        <a routerLink="/create" class="create-button">Create New Poll</a>
-    </div>
+  <div class="list-header">
+    <h2 class="list-title">All Polls</h2>
+    <a routerLink="/create" class="create-button">Create New Poll</a>
+  </div>
 
-    <div *ngIf="isLoading" class="loading-container">
-        <div class="loading-spinner"></div>
-    </div>
+  <!-- ───────────── Filter UI ───────────── -->
+  <div class="filter-container" *ngIf="!isLoading && !errorMessage">
+    <label for="filterSelect" class="filter-label">Show:</label>
+    <select id="filterSelect"
+            [(ngModel)]="selectedFilter"
+            class="filter-select">
+      <option value="all">All</option>
+      <option value="active">Active</option>
+      <option value="inactive">Inactive</option>
+      <option value="closed">Closed</option>
+    </select>
+  </div>
 
-    <div *ngIf="errorMessage" class="error-message">
-        {{ errorMessage }}
-    </div>
+  <!-- ───────────── States ───────────── -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loading-spinner"></div>
+  </div>
 
-    <div *ngIf="!isLoading && !errorMessage && polls.length === 0" class="empty-state">
-        <p class="empty-message">No polls found</p>
-        <a routerLink="/create" class="create-button">Create Your First Poll</a>
-    </div>
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
 
-    <div *ngIf="!isLoading && polls.length > 0" class="polls-grid">
-        <div *ngFor="let poll of polls" class="poll-card">
-            <div class="poll-content">
-                <div class="poll-info">
-                    <h3 class="poll-title">
-                        <a [routerLink]="['/poll', poll.id]">{{ poll.title }}</a>
-                    </h3>
-                    <p *ngIf="poll.description" class="poll-description">{{ poll.description }}</p>
+  <div *ngIf="!isLoading && !errorMessage && filteredPolls.length === 0"
+       class="empty-state">
+    <p class="empty-message">No polls found</p>
+    <a routerLink="/create" class="create-button">Create Your First Poll</a>
+  </div>
 
-                    <!-- Poll Schedule Information -->
-                    <div *ngIf="poll.startDate || poll.endDate" class="poll-schedule">
-                        <div *ngIf="poll.startDate" class="schedule-item">
-                            <span class="schedule-icon">🚀</span>
-                            <span class="schedule-label">Starts:</span>
-                            <span class="schedule-date">{{ poll.startDate | date:'medium' }}</span>
-                        </div>
-                        <div *ngIf="poll.endDate" class="schedule-item">
-                            <span class="schedule-icon">🏁</span>
-                            <span class="schedule-label">Ends:</span>
-                            <span class="schedule-date">{{ poll.endDate | date:'medium' }}</span>
-                        </div>
-                    </div>
+  <!-- ───────────── Poll cards ───────────── -->
+  <div *ngIf="!isLoading && filteredPolls.length > 0" class="polls-grid">
+    <div *ngFor="let poll of filteredPolls" class="poll-card">
+      <div class="poll-content">
+        <div class="poll-info">
+          <h3 class="poll-title">
+            <a [routerLink]="['/poll', poll.id]">{{ poll.title }}</a>
+          </h3>
 
-                    <!-- Poll Status -->
-                    <div class="poll-status">
-                        <span [ngClass]="getPollStatusClass(poll)" class="status-badge">
-                            {{ getPollStatus(poll) }}
-                        </span>
-                    </div>
+          <p *ngIf="poll.description" class="poll-description">
+            {{ poll.description }}
+          </p>
 
-                    <div class="poll-meta">
-                        Created by {{ poll.createdBy }} · {{ poll.createdAt | date:'medium' }}
-                    </div>
-                </div>
-                <div class="poll-stats">
-                    <span class="vote-count">{{ poll.totalVotes }} votes</span>
-                    <div class="poll-actions">
-                        <a [routerLink]="['/poll', poll.id]" class="action-link" [class.disabled]="!isPollActive(poll)">
-                            Vote
-                        </a>
-                        <a [routerLink]="['/poll', poll.id, 'results']" class="action-link">Results</a>
-                    </div>
-                </div>
+          <!-- Schedule -->
+          <div *ngIf="poll.startDate || poll.endDate" class="poll-schedule">
+            <div *ngIf="poll.startDate" class="schedule-item">
+              <span class="schedule-icon">🚀</span>
+              <span class="schedule-label">Starts:</span>
+              <span class="schedule-date">{{ poll.startDate | date : 'medium' }}</span>
             </div>
+            <div *ngIf="poll.endDate" class="schedule-item">
+              <span class="schedule-icon">🏁</span>
+              <span class="schedule-label">Ends:</span>
+              <span class="schedule-date">{{ poll.endDate | date : 'medium' }}</span>
+            </div>
+          </div>
+
+          <!-- Status badge -->
+          <div class="poll-status">
+            <span [ngClass]="getPollStatusClass(poll)" class="status-badge">
+              {{ getPollStatus(poll) }}
+            </span>
+          </div>
+
+          <div class="poll-meta">
+            Created by {{ poll.createdBy }} &middot; {{ poll.createdAt | date : 'medium' }}
+          </div>
         </div>
+
+        <!-- Votes + actions -->
+        <div class="poll-stats">
+          <span class="vote-count">{{ poll.totalVotes }} votes</span>
+          <div class="poll-actions">
+            <a [routerLink]="['/poll', poll.id]"
+               class="action-link"
+               [class.disabled]="!isPollActive(poll)">
+              Vote
+            </a>
+            <a [routerLink]="['/poll', poll.id, 'results']"
+               class="action-link">
+              Results
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 </div>

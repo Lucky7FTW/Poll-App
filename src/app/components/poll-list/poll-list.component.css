@@ -390,3 +390,61 @@
         min-width: auto;
     }
 }
+
+/* ─── polished filter styling ─── */
+.filter-container {
+  display: flex;
+  align-items: center;
+  justify-content: right;
+  gap: 0.75rem;
+  margin-block: 1.5rem;
+}
+
+.filter-label {
+  font-weight: 600;
+  color: #4b5563;               /* gray-600 */
+}
+
+.filter-select {
+  appearance: none;
+  cursor: pointer;
+
+  padding: 0.5rem 2.5rem 0.5rem 0.75rem; /* extra right-pad for chevron */
+  border: 2px solid #8b5cf6;             /* indigo-400 */
+  border-radius: 0.5rem;
+  background:
+    /* custom dropdown chevron */
+    url("data:image/svg+xml;utf8,<svg fill='%238b5cf6' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M7 10l5 5 5-5'/></svg>")
+    no-repeat right 0.75rem center / 1rem,
+    #fff;
+
+  font-weight: 500;
+  color: #4b5563;              /* gray-600 */
+
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.filter-select:hover {
+  border-color: #6d28d9;       /* indigo-600 */
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #6d28d9;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3); /* soft indigo ring */
+}
+
+/* ─── optional dark-mode tweak ─── */
+@media (prefers-color-scheme: dark) {
+  .filter-select {
+    background-color: #1f2937; /* gray-800 */
+    color: #e5e7eb;            /* gray-200 */
+    border-color: #6d28d9;     /* indigo-600 */
+  }
+  .filter-label {
+    color: #d1d5db;            /* gray-300 */
+  }
+  .filter-select:focus {
+    box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.4);
+  }
+}
