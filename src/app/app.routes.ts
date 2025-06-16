@@ -13,7 +13,9 @@ import { PrivacyComponent } from './components/footer/privacy/privacy.component'
 import { UserProfileComponent } from './components/user-profile/user-profile.component';
 import { AuthGuard } from './core/authentication/auth.guard';
 import { PollExistsGuard } from './core/authentication/models/poll-exists.guard';
-import { NotFoundComponent } from './components/NotFoundComponent/not-found.component';
+import { NotFoundComponent } from './components/not-found-component/not-found.component';
+import { PollNotOpenComponent } from './components/not-open/not-open.component';
+import { InactivePollGuard } from './core/authentication/models/inactive-poll.guard';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -23,12 +25,14 @@ export const routes: Routes = [
     component: CreatePollComponent,
     canActivate: [AuthGuard]
   },
+    {path: 'poll/not-open',
+  component: PollNotOpenComponent},
   {
     path: 'private-polls',
     component: PrivatePollsComponent,
     //canActivate: [authGuard],
   },
-  { path: 'poll/:id', component: PollVoteComponent, canActivate: [PollExistsGuard]},
+  { path: 'poll/:id', component: PollVoteComponent, canActivate: [InactivePollGuard,PollExistsGuard],},
   { path: 'poll/:id/results', component: PollResultsComponent, canActivate: [PollExistsGuard] },
   { path: 'login', component: LoginComponent },
   { path: 'signup', component: SignupComponent },
