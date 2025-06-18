@@ -1,4 +1,4 @@
-<!-- user-profile.component.html (full, scoped to the logged-in user’s own polls) -->
+<!-- user-profile.component.html (FULL VERSION with Delete-poll support) -->
 <div class="profile-container">
   <div class="profile-card">
     <!-- ───────── Header ───────── -->
@@ -13,29 +13,33 @@
     <!-- ───────── Tabs ───────── -->
     <div class="profile-tabs">
       <button [class.active]="isActive('profile')"
-              (click)="setActiveTab('profile')" class="tab-button">
+              (click)="setActiveTab('profile')"
+              class="tab-button">
         <span class="tab-icon">👤</span> Profile
       </button>
 
       <button [class.active]="isActive('polls')"
-              (click)="setActiveTab('polls')" class="tab-button">
+              (click)="setActiveTab('polls')"
+              class="tab-button">
         <span class="tab-icon">📊</span> My Polls
       </button>
 
       <button [class.active]="isActive('security')"
-              (click)="setActiveTab('security')" class="tab-button">
+              (click)="setActiveTab('security')"
+              class="tab-button">
         <span class="tab-icon">🔒</span> Security
       </button>
     </div>
 
-    <!-- ───────── Loading Spinner ───────── -->
+    <!-- ───────── Global spinner ───────── -->
     <div *ngIf="loading" class="loading-container">
       <div class="loading-spinner"></div>
     </div>
 
-    <!-- ───────── Profile Tab ───────── -->
+    <!-- ─────────────────── Profile TAB ─────────────────── -->
     <div *ngIf="isActive('profile') && !loading" class="tab-content">
       <div class="profile-info">
+        <!-- avatar -->
         <div class="avatar-section">
           <div class="avatar">
             {{ profileForm.get('displayName')?.value?.charAt(0) || 'U' }}
@@ -45,15 +49,17 @@
           </div>
         </div>
 
+        <!-- profile form -->
         <div class="profile-form-container">
           <form [formGroup]="profileForm"
                 (ngSubmit)="updateProfile()"
                 class="profile-form">
+
             <!-- Display Name -->
             <div class="form-group">
               <label for="displayName" class="form-label">Display Name</label>
-              <input type="text"
-                     id="displayName"
+              <input id="displayName"
+                     type="text"
                      formControlName="displayName"
                      class="form-input"
                      [class.input-error]="profileForm.get('displayName')?.invalid &&
@@ -68,8 +74,8 @@
             <!-- Email (read-only) -->
             <div class="form-group">
               <label for="email" class="form-label">Email Address</label>
-              <input type="email"
-                     id="email"
+              <input id="email"
+                     type="email"
                      formControlName="email"
                      class="form-input disabled" />
               <div class="form-note">Email cannot be changed</div>
@@ -79,16 +85,16 @@
             <div class="form-group">
               <label for="bio" class="form-label">Bio</label>
               <textarea id="bio"
+                        rows="4"
                         formControlName="bio"
                         class="form-textarea"
-                        rows="4"
                         placeholder="Tell us a bit about yourself..."></textarea>
               <div class="form-note">
                 {{ profileForm.get('bio')?.value?.length || 0 }}/200 characters
               </div>
             </div>
 
-            <!-- Success / error banners -->
+            <!-- banners -->
             <div *ngIf="updateSuccess" class="success-message">
               Profile updated successfully!
             </div>
@@ -106,9 +112,9 @@
       </div>
     </div>
 
-    <!-- ───────── Polls Tab (only user’s polls) ───────── -->
+    <!-- ─────────────────── POLLS TAB ─────────────────── -->
     <div *ngIf="isActive('polls') && !loading" class="tab-content">
-      <!-- controls -->
+      <!-- control bar -->
       <div class="poll-controls">
         <select [(ngModel)]="selectedFilter" class="control-select">
           <option value="all">All</option>
@@ -132,13 +138,18 @@
         </select>
       </div>
 
+      <!-- delete error -->
+      <div *ngIf="deleteError" class="error-message">
+        {{ deleteError }}
+      </div>
+
       <!-- empty state -->
       <div *ngIf="filteredPolls.length === 0" class="empty-state">
         <p>You haven’t created any polls that match these filters.</p>
         <a routerLink="/create" class="primary-button">Create Your First Poll</a>
       </div>
 
-      <!-- list -->
+      <!-- poll list -->
       <div *ngIf="filteredPolls.length > 0" class="polls-list">
         <div *ngFor="let poll of filteredPolls" class="poll-item">
           <div class="poll-item-content">
@@ -161,14 +172,14 @@
                 </div>
               </div>
 
-              <!-- status -->
+              <!-- status badge -->
               <div class="poll-status">
-                <span [ngClass]="getPollStatusClass(poll)"
-                      class="status-badge">
+                <span [ngClass]="getPollStatusClass(poll)" class="status-badge">
                   {{ getPollStatus(poll) }}
                 </span>
               </div>
 
+              <!-- meta -->
               <p class="poll-item-meta">
                 Created on {{ poll.createdAt | date:'medium' }} •
                 {{ poll.totalVotes || 0 }} votes
@@ -183,22 +194,32 @@
                [class.disabled]="!isPollActive(poll)">
               Vote
             </a>
+
             <a [routerLink]="['/poll', poll.id, 'results']"
                class="action-link">
               Results
             </a>
+
             <a routerLink="/create"
                [queryParams]="{ edit: poll.id }"
                class="action-link">
               Edit
             </a>
+
+            <!-- DELETE (only if Upcoming or Ended) -->
+            <button *ngIf="canDeletePoll(poll)"
+                    class="action-link delete-btn"
+                    (click)="deletePoll(poll)"
+                    [disabled]="deletingId === poll.id">
+              {{ deletingId === poll.id ? 'Deleting…' : 'Delete' }}
+            </button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ───────── Security Tab ───────── -->
-    <div *ngIf="isActive('security') && !loading">
+    <!-- ─────────────────── SECURITY TAB ─────────────────── -->
+    <div *ngIf="isActive('security') && !loading" class="tab-content">
       <div class="security-section">
         <h2 class="section-title">Change Password</h2>
         <form [formGroup]="passwordForm"
@@ -207,8 +228,8 @@
           <!-- current password -->
           <div class="form-group">
             <label for="currentPassword" class="form-label">Current Password</label>
-            <input type="password"
-                   id="currentPassword"
+            <input id="currentPassword"
+                   type="password"
                    formControlName="currentPassword"
                    class="form-input"
                    [class.input-error]="passwordForm.get('currentPassword')?.invalid &&
@@ -223,8 +244,8 @@
           <!-- new password -->
           <div class="form-group">
             <label for="newPassword" class="form-label">New Password</label>
-            <input type="password"
-                   id="newPassword"
+            <input id="newPassword"
+                   type="password"
                    formControlName="newPassword"
                    class="form-input"
                    [class.input-error]="passwordForm.get('newPassword')?.invalid &&
@@ -236,11 +257,11 @@
             </div>
           </div>
 
-          <!-- confirm password -->
+          <!-- confirm -->
           <div class="form-group">
             <label for="confirmPassword" class="form-label">Confirm New Password</label>
-            <input type="password"
-                   id="confirmPassword"
+            <input id="confirmPassword"
+                   type="password"
                    formControlName="confirmPassword"
                    class="form-input"
                    [class.input-error]="(passwordForm.get('confirmPassword')?.invalid ||
@@ -253,7 +274,7 @@
             </div>
           </div>
 
-          <!-- success / error banners -->
+          <!-- banners -->
           <div *ngIf="passwordUpdateSuccess" class="success-message">
             Password updated successfully!
           </div>

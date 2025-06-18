@@ -9,7 +9,7 @@ import {
   FormsModule,
 } from '@angular/forms';
 import { Subscription, of } from 'rxjs';
-import { switchMap, tap } from 'rxjs/operators';
+import { switchMap, tap, first } from 'rxjs/operators';
 
 import { AuthService } from '../../core/authentication/auth.service';
 import { PollService } from '../../services/poll.service';
@@ -34,8 +34,12 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   passwordUpdateSuccess = false;
   passwordUpdateError: string | null = null;
 
+  /* delete-poll ui state */
+  deleteError: string | null = null;
+  deletingId: string | null = null;     // to disable the button being clicked
+
   /* ───────── poll data ───────── */
-  userPolls: Poll[] = [];                 // only the signed-in user’s polls
+  userPolls: Poll[] = [];                 // signed-in user’s own polls
 
   pollStats = {
     totalPolls:   0,
@@ -128,10 +132,38 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   }
 
   /* ───────── delegates for template ───────── */
-  isPollActive     = (p: Poll) => this.pollService.isPollActive(p);
-  getPollStatus    = (p: Poll) => this.pollService.getPollStatus(p);
+  isPollActive       = (p: Poll) => this.pollService.isPollActive(p);
+  getPollStatus      = (p: Poll) => this.pollService.getPollStatus(p);
   getPollStatusClass = (p: Poll) => this.pollService.getPollStatusClass(p);
-  getTimeUntilEnd  = (p: Poll) => this.pollService.getTimeUntilEnd(p);
+  getTimeUntilEnd    = (p: Poll) => this.pollService.getTimeUntilEnd(p);
+
+  /* ───────── delete helpers ───────── */
+  /** true when poll is ‘Upcoming’ or ‘Ended’ (i.e. not Active) */
+  canDeletePoll(p: Poll): boolean {
+    return this.getPollStatus(p) !== 'Active';
+  }
+
+  deletePoll(p: Poll): void {
+    if (!this.canDeletePoll(p)) return;
+    if (!confirm(`Delete poll “${p.title}”? This cannot be undone.`)) return;
+
+    this.deletingId  = p.id;
+    this.deleteError = null;
+
+    this.pollService.deletePoll(p.id).pipe(first()).subscribe({
+      next: () => {
+        // remove locally
+        this.userPolls = this.userPolls.filter(x => x.id !== p.id);
+        this.calculatePollStats(this.userPolls);
+        this.deletingId = null;
+      },
+      error: err => {
+        console.error('Delete failed:', err);
+        this.deleteError = 'Failed to delete poll.';
+        this.deletingId = null;
+      }
+    });
+  }
 
   /* ───────── profile actions ───────── */
   passwordMatchValidator(form: FormGroup): { mismatch: boolean } | null {
