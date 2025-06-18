@@ -1,0 +1,68 @@
+<!-- loading -->
+<div *ngIf="loading" class="loading-container">
+  <div class="loading-spinner"></div>
+</div>
+
+<!-- filter / sort bar -->
+<div *ngIf="!loading" class="poll-controls">
+  <select [(ngModel)]="selectedFilter">
+    <option value="all">All</option>
+    <option value="active">Active</option>
+    <option value="inactive">Upcoming</option>
+    <option value="closed">Ended</option>
+  </select>
+
+  <input [(ngModel)]="searchTerm" placeholder="Search your polls…" />
+
+  <select [(ngModel)]="selectedSort">
+    <option value="date-desc">Newest</option>
+    <option value="date-asc">Oldest</option>
+    <option value="name-asc">A-Z</option>
+    <option value="name-desc">Z-A</option>
+    <option value="votes-desc">Most votes</option>
+    <option value="votes-asc">Least votes</option>
+  </select>
+</div>
+
+<!-- delete error -->
+<div *ngIf="deleteError" class="error-message">{{ deleteError }}</div>
+
+<!-- empty -->
+<div *ngIf="!loading && filteredPolls.length === 0" class="empty-state">
+  <p>You haven’t created any polls that match these filters.</p>
+  <a routerLink="/create" class="primary-button">Create Your First Poll</a>
+</div>
+
+<!-- list -->
+<div *ngFor="let poll of filteredPolls" class="poll-item">
+  <div class="poll-info">
+    <h3 class="poll-title">
+      <a [routerLink]="['/poll', poll.id]">{{ poll.title }}</a>
+    </h3>
+
+    <!-- status badge -->
+    <span [ngClass]="getPollStatusClass(poll)" class="status-badge">
+      {{ getPollStatus(poll) }}
+    </span>
+
+    <!-- meta -->
+    <p class="poll-meta">
+      {{ poll.createdAt | date:'medium' }} • {{ poll.totalVotes || 0 }} votes
+    </p>
+  </div>
+
+  <!-- actions -->
+  <div class="poll-actions">
+    <a [routerLink]="['/poll', poll.id]"
+       [class.disabled]="!isPollActive(poll)">Vote</a>
+    <a [routerLink]="['/poll', poll.id, 'results']">Results</a>
+    <a routerLink="/create" [queryParams]="{ edit: poll.id }">Edit</a>
+
+    <!-- Delete -->
+    <button *ngIf="canDeletePoll(poll)"
+            (click)="deletePoll(poll)"
+            [disabled]="deletingId === poll.id">
+      {{ deletingId === poll.id ? 'Deleting…' : 'Delete' }}
+    </button>
+  </div>
+</div>
