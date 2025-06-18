@@ -1,26 +1,48 @@
+<!-- src/app/pages/user-profile/user-profile.component.html -->
 <div class="profile-container">
   <div class="profile-card">
 
-    <!-- ───── Header ───── -->
+    <!-- ───── Header row ───── -->
     <div class="page-header">
       <h1 class="page-title">My Profile</h1>
       <button routerLink="/" class="home-button">
-        <span class="home-icon">🏠</span>
-        Back to Home
+        <span class="home-icon">🏠</span> Back to Home
       </button>
     </div>
 
-    <!-- ───── Tab buttons ───── -->
+    <!-- ───── Tabs ───── -->
     <div class="profile-tabs">
-      <button (click)="setTab('profile')"  [class.active]="activeTab==='profile'">👤 Profile</button>
-      <button (click)="setTab('polls')"    [class.active]="activeTab==='polls'">📊 My Polls</button>
-      <button (click)="setTab('security')" [class.active]="activeTab==='security'">🔒 Security</button>
+      <button class="tab-button"
+              [class.active]="activeTab==='profile'"
+              (click)="setTab('profile')">
+        <span class="tab-icon">👤</span> Profile
+      </button>
+
+      <button class="tab-button"
+              [class.active]="activeTab==='polls'"
+              (click)="setTab('polls')">
+        <span class="tab-icon">📊</span> My Polls
+      </button>
+
+      <button class="tab-button"
+              [class.active]="activeTab==='security'"
+              (click)="setTab('security')">
+        <span class="tab-icon">🔒</span> Security
+      </button>
     </div>
 
-    <!-- ───── Routed tab content ───── -->
-    <app-profile-info-form   *ngIf="activeTab==='profile'"></app-profile-info-form>
-    <app-user-polls          *ngIf="activeTab==='polls'"></app-user-polls>
-    <app-security-settings   *ngIf="activeTab==='security'"></app-security-settings>
+    <!-- ───── Tab content wrappers (keep .tab-content for CSS) ───── -->
+    <div class="tab-content" *ngIf="activeTab==='profile'">
+      <app-profile-info-form></app-profile-info-form>
+    </div>
+
+    <div class="tab-content" *ngIf="activeTab==='polls'">
+      <app-user-polls></app-user-polls>
+    </div>
+
+    <div class="tab-content" *ngIf="activeTab==='security'">
+      <app-security-settings></app-security-settings>
+    </div>
 
   </div>
 </div>

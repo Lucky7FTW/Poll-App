@@ -1,0 +1,137 @@
+/* ─── Password-change form ─────────────────────────────────────────────── */
+.password-form {
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Shared label layout */
+.form-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #4b5563;           /* gray-600 */
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Inputs */
+.password-form input {
+  padding: 0.875rem 1rem;
+  border: 1px solid #e5e7eb;      /* gray-200 */
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  background-color: #f9fafb;      /* gray-50 */
+  transition: all 0.25s ease;
+
+  &:focus {
+    outline: none;
+    border-color: #8b5cf6;        /* indigo-400 */
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+    background-color: #fff;
+  }
+
+  &.input-error {
+    border-color: #ef4444;        /* red-500 */
+
+    &:focus {
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25);
+    }
+  }
+}
+
+/* Submit button */
+.password-form button[type="submit"] {
+  padding: 1rem;
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);  /* indigo grad */
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+  margin-top: 0.25rem;
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, #7c3aed, #6d28d9);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+  }
+
+  &:disabled {
+    background: linear-gradient(135deg, #c4b5fd, #a78bfa);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+/* Success / error banners */
+.success-message,
+.error-message {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.success-message {
+  background-color: #dcfce7;   /* green-100 */
+  border-left: 4px solid #22c55e;
+  color: #166534;              /* green-700 */
+}
+
+.error-message {
+  background-color: #fee2e2;   /* red-100 */
+  border-left: 4px solid #ef4444;
+  color: #b91c1c;              /* red-700 */
+}
+
+/* ─── Divider ──────────────────────────────────────────────────────────── */
+hr {
+  margin: 2.5rem 0;
+  border: 0;
+  border-top: 1px solid #f3f4f6;   /* gray-100 */
+}
+
+/* ─── Danger Zone ──────────────────────────────────────────────────────── */
+.danger-zone {
+  padding-top: 1.5rem;
+}
+
+.danger-zone h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ef4444;    /* red-500 */
+  margin-bottom: 0.5rem;
+}
+
+.danger-zone p {
+  color: #b91c1c;    /* red-700 */
+  margin-bottom: 1.5rem;
+}
+
+.delete-button {
+  padding: 0.75rem 1.5rem;
+  background-color: #ef4444;   /* red-500 */
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background-color: #dc2626; /* red-600 */
+    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.35);
+  }
+}
+
+/* ─── Responsive tweak (optional) ──────────────────────────────────────── */
+@media (max-width: 480px) {
+  .password-form { gap: 1rem; }
+  .danger-zone h3 { font-size: 1.1rem; }
+}
