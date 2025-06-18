@@ -12,7 +12,7 @@ import { PollService } from '../../services/poll.service';
   standalone: true,
   imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './poll-list.component.html',
-  styleUrls: ['./poll-list.component.css'],   // ← plural
+  styleUrls: ['./poll-list.component.css'],
 })
 export class PollListComponent implements OnInit {
 
@@ -34,21 +34,21 @@ export class PollListComponent implements OnInit {
   /** SORT dropdown */
   selectedSort:
     | 'date-desc' | 'date-asc'
-    | 'name-asc' | 'name-desc'
-    | 'votes-desc' | 'votes-asc' = 'date-desc';
+    | 'name-asc'  | 'name-desc'
+    | 'votes-desc'| 'votes-asc' = 'date-desc';
 
   /* ───────── derived list ───────── */
   get filteredPolls(): Poll[] {
-    /* 1️⃣ status filter */
+    // 1️⃣ status
     let list = this.pollService.filterByStatus(this.polls, this.selectedFilter);
 
-    /* 2️⃣ name search */
+    // 2️⃣ search
     if (this.searchTerm.trim()) {
       const q = this.searchTerm.trim().toLowerCase();
       list = list.filter(p => p.title.toLowerCase().includes(q));
     }
 
-    /* 3️⃣ sorting */
+    // 3️⃣ sort
     return this.pollService.sortPolls(list, this.selectedSort);
   }
 
@@ -57,6 +57,7 @@ export class PollListComponent implements OnInit {
     if (isPlatformBrowser(this.platformId)) {
       this.pollService.getAllPolls().subscribe({
         next: allPolls => {
+          // show public polls only
           this.polls     = allPolls.filter(p => !p.isPrivate);
           this.isLoading = false;
         },
@@ -71,21 +72,31 @@ export class PollListComponent implements OnInit {
     }
   }
 
-  /* ───────── delegates for the template ───────── */
+  /* ───────── helpers used in the template ───────── */
 
-  isPollActive(poll: Poll): boolean {
-    return this.pollService.isPollActive(poll);
+  /** true if poll has NOT ended */
+  private isOpenForVoting(p: Poll): boolean {
+    return !p.endDate || new Date(p.endDate) > new Date();
   }
 
-  getPollStatus(poll: Poll): 'Upcoming' | 'Active' | 'Ended' {
-    return this.pollService.getPollStatus(poll);
+  /** Link destination respects ended state *and* prior vote */
+  getPollLink(p: Poll): any[] {
+    const ended = !this.isOpenForVoting(p);
+    if (ended || p.hasVoted) {
+      return ['/poll', p.id, 'results'];         // always results
+    }
+    return ['/poll', p.id];                      // vote page
   }
 
-  getPollStatusClass(poll: Poll): string {
-    return this.pollService.getPollStatusClass(poll);
+  /** CTA label */
+  getPollActionLabel(p: Poll): 'Vote' | 'View Results' {
+    const ended = !this.isOpenForVoting(p);
+    return (ended || p.hasVoted) ? 'View Results' : 'Vote';
   }
 
-  getTimeUntilEnd(poll: Poll): string | null {
-    return this.pollService.getTimeUntilEnd(poll);
-  }
+  /* ───────── delegates already shared with other components ───────── */
+  isPollActive       = (poll: Poll) => this.pollService.isPollActive(poll);
+  getPollStatus      = (poll: Poll) => this.pollService.getPollStatus(poll);
+  getPollStatusClass = (poll: Poll) => this.pollService.getPollStatusClass(poll);
+  getTimeUntilEnd    = (poll: Poll) => this.pollService.getTimeUntilEnd(poll);
 }

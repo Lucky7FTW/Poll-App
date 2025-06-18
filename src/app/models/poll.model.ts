@@ -15,6 +15,7 @@ export interface Poll {
     totalVotes: number;
     startDate?: string // ISO string format
     endDate?: string // ISO string format
+    hasVoted?: boolean;
 }
 
 export interface PollResult {
