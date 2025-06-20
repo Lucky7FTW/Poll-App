@@ -43,6 +43,13 @@ export class PrivatePollsComponent {
       .subscribe();
   }
 
+  /* ─────────── ownership helper ─────────── */
+  /** Returns true if the logged-in user created the poll */
+  isOwner(poll: Poll): boolean {
+    const user = this.auth.user;
+    return !!user && poll.createdBy === user.id; // adjust property name if needed
+  }
+
   /* ─────────── core fetch logic ─────────── */
   private fetchPrivatePolls() {
     this.loading = true;
@@ -104,9 +111,9 @@ export class PrivatePollsComponent {
       return;
     }
 
-    const url   = this.linkControl.value!.trim();
-    const parts = url.split('/');
-    const pollId = parts.pop() || parts.pop(); // handles trailing slash
+    const url     = this.linkControl.value!.trim();
+    const parts   = url.split('/');
+    const pollId  = parts.pop() || parts.pop(); // handles trailing slash
 
     if (!pollId) {
       this.addingError = 'Invalid link format.';
