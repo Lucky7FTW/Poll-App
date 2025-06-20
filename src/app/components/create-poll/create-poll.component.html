@@ -1,7 +1,9 @@
 <div class="create-poll-container">
   <div class="poll-card">
-    <h2 class="poll-title">Create a New Poll</h2>
+    <!-- dynamic title -->
+    <h2 class="poll-title">{{ titleText() }}</h2>
 
+    <!-- error banner -->
     <div *ngIf="errorMessage" class="error-message">
       {{ errorMessage }}
     </div>
@@ -28,7 +30,7 @@
           "
           class="form-error"
         >
-          Question is required (min 5 characters)
+          Question is required (min&nbsp;5 characters)
         </div>
       </div>
 
@@ -48,7 +50,11 @@
       <div class="form-group">
         <div class="options-header">
           <label class="form-label">Options</label>
-          <button type="button" (click)="addOption()" class="add-option-button">
+          <button
+            type="button"
+            (click)="addOption()"
+            class="add-option-button"
+          >
             Add Option
           </button>
         </div>
@@ -80,7 +86,7 @@
           *ngIf="options.invalid && (options.dirty || options.touched)"
           class="form-error"
         >
-          At least 2 options are required
+          At least&nbsp;2 options are required
         </div>
       </div>
 
@@ -100,7 +106,7 @@
               [min]="getMinDateTime()"
             />
             <div class="date-help">
-              When should voting begin? (Leave empty for immediate start)
+              When should voting begin? (leave empty for immediate start)
             </div>
           </div>
 
@@ -115,7 +121,7 @@
               [min]="getMinEndDateTime()"
             />
             <div class="date-help">
-              When should voting end? (Leave empty for no end date)
+              When should voting end? (leave empty for no end date)
             </div>
           </div>
         </div>
@@ -165,9 +171,9 @@
             formControlName="allowMultiple"
             class="checkbox-input"
           />
-          <label for="allowMultiple" class="checkbox-label"
-            >Allow multiple selections</label
-          >
+          <label for="allowMultiple" class="checkbox-label">
+            Allow multiple selections
+          </label>
         </div>
 
         <div class="checkbox-group">
@@ -177,9 +183,22 @@
             formControlName="isPrivate"
             class="checkbox-input"
           />
-          <label for="isPrivate" class="checkbox-label"
-            >Private poll (only accessible via link)</label
-          >
+          <label for="isPrivate" class="checkbox-label">
+            Private poll (only accessible via link)
+          </label>
+        </div>
+
+        <!-- NEW: view-results-without-voting switch -->
+        <div class="checkbox-group">
+          <input
+            id="publicResults"
+            type="checkbox"
+            formControlName="publicResults"
+            class="checkbox-input"
+          />
+          <label for="publicResults" class="checkbox-label">
+            Allow anyone to view results without voting
+          </label>
         </div>
       </div>
 
@@ -190,8 +209,8 @@
         [disabled]="pollForm.invalid || isLoading"
         [class.loading]="isLoading"
       >
-        <span *ngIf="isLoading">Creating Poll…</span>
-        <span *ngIf="!isLoading">Create Poll</span>
+        <span *ngIf="isLoading">{{ loadingTxt() }}</span>
+        <span *ngIf="!isLoading">{{ submitText() }}</span>
       </button>
     </form>
   </div>

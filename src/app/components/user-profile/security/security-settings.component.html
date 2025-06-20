@@ -1,0 +1,45 @@
+<form [formGroup]="form"
+      (ngSubmit)="updatePassword()"
+      class="password-form">
+
+  <label class="form-label">
+    Current Password
+    <input type="password"
+           formControlName="currentPassword"
+           [class.input-error]="form.get('currentPassword')?.invalid &&
+                                form.get('currentPassword')?.touched" />
+  </label>
+
+  <label class="form-label">
+    New Password
+    <input type="password"
+           formControlName="newPassword"
+           [class.input-error]="form.get('newPassword')?.invalid &&
+                                form.get('newPassword')?.touched" />
+  </label>
+
+  <label class="form-label">
+    Confirm New Password
+    <input type="password"
+           formControlName="confirmPassword"
+           [class.input-error]="form.hasError('mismatch') &&
+                                form.get('confirmPassword')?.touched" />
+  </label>
+
+  <!-- banners -->
+  <div *ngIf="success" class="success-message">Password updated!</div>
+  <div *ngIf="error"   class="error-message">{{ error }}</div>
+
+  <button type="submit"
+          [disabled]="form.invalid || loading">
+    {{ loading ? 'Updating…' : 'Update Password' }}
+  </button>
+</form>
+
+<hr>
+
+<div class="danger-zone">
+  <h3>Danger Zone</h3>
+  <p>Deleting your account is irreversible.</p>
+  <button class="delete-button" (click)="deleteAccount()">Delete My Account</button>
+</div>
