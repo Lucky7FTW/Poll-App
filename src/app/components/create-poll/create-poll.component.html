@@ -30,7 +30,7 @@
           "
           class="form-error"
         >
-          Question is required (min 5 characters)
+          Question is required (min&nbsp;5 characters)
         </div>
       </div>
 
@@ -50,7 +50,11 @@
       <div class="form-group">
         <div class="options-header">
           <label class="form-label">Options</label>
-          <button type="button" (click)="addOption()" class="add-option-button">
+          <button
+            type="button"
+            (click)="addOption()"
+            class="add-option-button"
+          >
             Add Option
           </button>
         </div>
@@ -82,7 +86,7 @@
           *ngIf="options.invalid && (options.dirty || options.touched)"
           class="form-error"
         >
-          At least 2 options are required
+          At least&nbsp;2 options are required
         </div>
       </div>
 
@@ -102,7 +106,7 @@
               [min]="getMinDateTime()"
             />
             <div class="date-help">
-              When should voting begin? (Leave empty for immediate start)
+              When should voting begin? (leave empty for immediate start)
             </div>
           </div>
 
@@ -117,7 +121,7 @@
               [min]="getMinEndDateTime()"
             />
             <div class="date-help">
-              When should voting end? (Leave empty for no end date)
+              When should voting end? (leave empty for no end date)
             </div>
           </div>
         </div>
@@ -181,6 +185,19 @@
           />
           <label for="isPrivate" class="checkbox-label">
             Private poll (only accessible via link)
+          </label>
+        </div>
+
+        <!-- NEW: view-results-without-voting switch -->
+        <div class="checkbox-group">
+          <input
+            id="publicResults"
+            type="checkbox"
+            formControlName="publicResults"
+            class="checkbox-input"
+          />
+          <label for="publicResults" class="checkbox-label">
+            Allow anyone to view results without voting
           </label>
         </div>
       </div>

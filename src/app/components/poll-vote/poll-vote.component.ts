@@ -18,53 +18,50 @@ import { AuthService } from '../../core/authentication/auth.service';
   standalone: true,
   imports: [ReactiveFormsModule, CommonModule, RouterLink],
   templateUrl: './poll-vote.component.html',
-  styleUrl: './poll-vote.component.css',
+  styleUrls: ['./poll-vote.component.css'],   // ✅ plural – Angular looks for an array
 })
 export class PollVoteComponent implements OnInit {
-  /* ─────────────────── DI ─────────────────── */
+  /* ── DI ── */
   private pollService = inject(PollService);
   private authService = inject(AuthService);
   private route       = inject(ActivatedRoute);
   private router      = inject(Router);
   private fb          = inject(FormBuilder);
 
-  /* ────────────────── state ────────────────── */
+  /* ── state ── */
   poll: Poll | null = null;
 
-  /** time-window flags */
   hasStarted = true;
   hasEnded   = false;
 
-  /** ui flags */
-  isLoading     = true;
-  isSubmitting  = false;
-  hasVoted      = false;
-  errorMessage  = '';
+  isLoading      = true;
+  isSubmitting   = false;
+  hasVoted       = false;
+  mustVoteNotice = false;
+  errorMessage   = '';
 
   voteForm: FormGroup = this.fb.group({
-    selectedOption: ['', Validators.required],
+    selectedOption: ['', Validators.required],   // radio
   });
-  selectedOptions: string[] = [];
+  selectedOptions: string[] = [];                // checkboxes
 
-  /* ────────────────── init ────────────────── */
+  /* ── init ── */
   ngOnInit(): void {
+    /* banner if guard bounced us */
+    this.mustVoteNotice =
+      this.route.snapshot.queryParamMap.get('needVote') === 'true';
+
     const pollId = this.route.snapshot.paramMap.get('id');
-    if (!pollId) {
-      this.finishWithError('Poll ID is missing');
-      return;
-    }
+    if (!pollId) return this.finishWithError('Poll ID is missing');
 
     const user = this.authService.user;
-    if (!user) {
-      this.finishWithError('You must be logged in to vote.');
-      return;
-    }
+    if (!user) return this.finishWithError('You must be logged in to vote.');
 
-    /* get poll, then check prior vote */
+    /* fetch poll then vote-status */
     this.pollService
       .getPollById(pollId)
       .pipe(
-        switchMap((poll) => {
+        switchMap(poll => {
           if (!poll) throw new Error('not-found');
           this.poll = poll;
           this.evaluateTimeWindow(poll);
@@ -73,38 +70,35 @@ export class PollVoteComponent implements OnInit {
         first()
       )
       .subscribe({
-        next: (voted) => {
-          this.hasVoted = voted;
-          this.isLoading = false;
+        next: voted => {
+          this.hasVoted       = voted;
+          this.mustVoteNotice = this.mustVoteNotice && !voted;
+          this.isLoading      = false;
         },
-        error: (err) => {
-          console.error(err);
-          this.finishWithError(
-            err.message === 'not-found' ? 'Poll not found' : 'Failed to load poll.'
-          );
-        },
+        error: err => this.finishWithError(
+          err.message === 'not-found'
+            ? 'Poll not found'
+            : 'Failed to load poll.'
+        ),
       });
   }
 
-  /* ─────────────── helpers ─────────────── */
+  /* ── helpers ── */
   private evaluateTimeWindow(poll: Poll) {
     const now = new Date();
-    this.hasStarted =
-      !poll.startDate || new Date(poll.startDate) <= now;
-    this.hasEnded =
-      !!poll.endDate && new Date(poll.endDate) < now;
+    this.hasStarted = !poll.startDate || new Date(poll.startDate) <= now;
+    this.hasEnded   = !!poll.endDate && new Date(poll.endDate) < now;
   }
 
   get votingOpen(): boolean {
     return this.hasStarted && !this.hasEnded && !this.hasVoted;
   }
 
-  onCheckboxChange(evt: Event) {
-    const ctrl = evt.target as HTMLInputElement;
-    const id   = ctrl.value;
-    this.selectedOptions = ctrl.checked
-      ? [...this.selectedOptions, id]
-      : this.selectedOptions.filter((o) => o !== id);
+  onCheckboxChange(e: Event) {
+    const { checked, value } = e.target as HTMLInputElement;
+    this.selectedOptions = checked
+      ? [...this.selectedOptions, value]
+      : this.selectedOptions.filter(v => v !== value);
   }
 
   onSubmit() {
@@ -118,7 +112,7 @@ export class PollVoteComponent implements OnInit {
 
     const optionIds = this.poll.allowMultiple
       ? this.selectedOptions
-      : [this.voteForm.get('selectedOption')!.value];
+      : [this.voteForm.value.selectedOption];
 
     if (optionIds.length === 0) return;
 
@@ -130,7 +124,7 @@ export class PollVoteComponent implements OnInit {
       .subscribe({
         next: () =>
           this.router.navigate(['/poll', this.poll!.id, 'results']),
-        error: (err) => {
+        error: err => {
           console.error('Vote failed:', err);
           this.errorMessage = 'Failed to submit vote.';
           this.isSubmitting = false;
@@ -140,6 +134,6 @@ export class PollVoteComponent implements OnInit {
 
   private finishWithError(msg: string) {
     this.errorMessage = msg;
-    this.isLoading = false;
+    this.isLoading    = false;
   }
 }

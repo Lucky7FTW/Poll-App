@@ -1,14 +1,25 @@
 <div class="poll-vote-container">
   <div class="poll-card">
+
+    <!-- banner if user was bounced from /results -->
+    <div *ngIf="mustVoteNotice" class="info-banner">
+      Please vote first to unlock the results.
+    </div>
+
+    <!-- loading spinner -->
     <div *ngIf="isLoading" class="loading-container">
       <div class="loading-spinner"></div>
     </div>
 
+    <!-- error -->
     <div *ngIf="errorMessage" class="error-message">
       {{ errorMessage }}
     </div>
 
+    <!-- poll found -->
     <div *ngIf="!isLoading && poll">
+
+      <!-- header -->
       <div class="poll-header">
         <h2 class="poll-title">{{ poll.title }}</h2>
         <p *ngIf="poll.description" class="poll-description">
@@ -16,27 +27,31 @@
         </p>
         <div class="poll-meta">
           Created by {{ poll.createdBy }} ·
-          {{ poll.createdAt | date : "medium" }}
+          {{ poll.createdAt | date : 'medium' }}
         </div>
       </div>
 
-      <!-- ✅ Dacă userul a votat deja -->
+      <!-- already voted -->
       <div *ngIf="hasVoted" class="voted-message">
         You have already voted in this poll.
-        <a [routerLink]="['/poll', poll.id, 'results']" class="results-link"
+        <a
+          [routerLink]="['/poll', poll.id, 'results']"
+          class="results-link"
           >View results</a
         >
       </div>
 
-      <!-- ✅ Dacă userul NU a votat -->
+      <!-- voting form -->
       <form
         *ngIf="!hasVoted"
         [formGroup]="voteForm"
         (ngSubmit)="onSubmit()"
         class="vote-form"
       >
+        <!-- multiple choice -->
         <div *ngIf="poll.allowMultiple" class="options-container">
           <div class="options-label">Select multiple options (checkbox)</div>
+
           <div *ngFor="let option of poll.options" class="option-item">
             <div class="checkbox-group">
               <input
@@ -46,15 +61,18 @@
                 (change)="onCheckboxChange($event)"
                 class="checkbox-input"
               />
-              <label [for]="'option-' + option.id" class="option-label">{{
-                option.text
-              }}</label>
+              <label
+                [for]="'option-' + option.id"
+                class="option-label"
+              >{{ option.text }}</label>
             </div>
           </div>
         </div>
 
+        <!-- single choice -->
         <div *ngIf="!poll.allowMultiple" class="options-container">
           <div class="options-label">Select one option (radio)</div>
+
           <div *ngFor="let option of poll.options" class="option-item">
             <div class="radio-group">
               <input
@@ -64,36 +82,40 @@
                 [value]="option.id"
                 class="radio-input"
               />
-              <label [for]="'option-' + option.id" class="option-label">{{
-                option.text
-              }}</label>
+              <label
+                [for]="'option-' + option.id"
+                class="option-label"
+              >{{ option.text }}</label>
             </div>
           </div>
         </div>
 
         <button
           type="submit"
+          class="submit-button"
+          [class.loading]="isSubmitting"
           [disabled]="
             (voteForm.invalid && !poll.allowMultiple) ||
             (poll.allowMultiple && selectedOptions.length === 0) ||
             isSubmitting
           "
-          class="submit-button"
-          [class.loading]="isSubmitting"
         >
-          <span *ngIf="isSubmitting">Submitting Vote...</span>
+          <span *ngIf="isSubmitting">Submitting&nbsp;Vote…</span>
           <span *ngIf="!isSubmitting">Submit Vote</span>
         </button>
       </form>
 
+      <!-- footer -->
       <div class="poll-footer">
         <a [routerLink]="['/polls']" class="back-link">Back to Polls</a>
-        <a [routerLink]="['/poll', poll.id, 'results']" class="results-link"
-          >View Results</a
-        >
+        <a
+          [routerLink]="['/poll', poll.id, 'results']"
+          class="results-link"
+        >View Results</a>
       </div>
     </div>
 
+    <!-- poll not found -->
     <div *ngIf="!isLoading && !poll && !errorMessage" class="not-found">
       <p>Poll not found</p>
     </div>

@@ -26,6 +26,7 @@ import { AuthGuard }        from './core/authentication/auth.guard';
 import { PollExistsGuard }  from './core/authentication/models/poll-exists.guard';
 import { InactivePollGuard }from './core/authentication/models/inactive-poll.guard';
 import { ClosedPollGuard }  from './core/authentication/models/closed-poll.guard';
+import { ResultsPermissionGuard } from './core/authentication/models/results-permission.guard';
 
 export const routes: Routes = [
   /* home & general */
@@ -48,7 +49,7 @@ export const routes: Routes = [
     /* ② results are only shown for valid and already-closed polls */
     path: 'poll/:id/results',
     component: PollResultsComponent,
-    canActivate: [PollExistsGuard],
+    canActivate: [PollExistsGuard,ResultsPermissionGuard],
   },
 
   /* redirect targets used by guards */
