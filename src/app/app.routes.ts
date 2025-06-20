@@ -37,18 +37,26 @@ export const routes: Routes = [
 
   /* poll live & results */
   {
+    /* ① run the existence-check first so we fail fast if the poll ID is bad,
+       then verify that the poll is actually open, and finally be sure it’s
+       not closed yet. */
     path: 'poll/:id',
     component: PollVoteComponent,
-    canActivate: [ InactivePollGuard, PollExistsGuard, ClosedPollGuard ],
+    canActivate: [PollExistsGuard, InactivePollGuard, ClosedPollGuard],
   },
-  { path: 'poll/:id/results', component: PollResultsComponent, canActivate: [PollExistsGuard] },
+  {
+    /* ② results are only shown for valid and already-closed polls */
+    path: 'poll/:id/results',
+    component: PollResultsComponent,
+    canActivate: [PollExistsGuard],
+  },
 
   /* redirect targets used by guards */
   { path: 'poll/not-open', component: PollNotOpenComponent },
   { path: 'poll/closed',   component: PollClosedComponent },
 
-  /* private-link polls */
-  { path: 'private-polls', component: PrivatePollsComponent /* , canActivate: [AuthGuard] */ },
+  /* private-link polls — only for logged-in users */
+  { path: 'private-polls', component: PrivatePollsComponent, canActivate: [AuthGuard] },
 
   /* auth & legal */
   { path: 'login',    component: LoginComponent },
@@ -57,7 +65,7 @@ export const routes: Routes = [
   { path: 'terms',    component: TermsComponent },
   { path: 'privacy',  component: PrivacyComponent },
 
-  /* user profile area (split into 3 sub-components inside) */
+  /* user profile area */
   { path: 'profile',  component: UserProfileComponent, canActivate: [AuthGuard] },
 
   /* fallback / 404 */
