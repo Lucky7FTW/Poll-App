@@ -1,3 +1,4 @@
+// src/app/pages/poll-results/poll-results.component.ts
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -9,17 +10,21 @@ import { PollService } from '../../services/poll.service';
   standalone: true,
   imports: [CommonModule, RouterLink],
   templateUrl: './poll-results.component.html',
-  styleUrl: './poll-results.component.css',
+  styleUrls: ['./poll-results.component.css'],
 })
 export class PollResultsComponent implements OnInit {
   private pollService = inject(PollService);
-  private route = inject(ActivatedRoute);
+  private route       = inject(ActivatedRoute);
 
   poll: Poll | null = null;
   results: PollResult[] = [];
   totalVotes = 0;
-  isLoading = true;
+
+  isLoading    = true;
   errorMessage = '';
+
+  /** true → show active “Back to Poll” link */
+  canVote = false;
 
   ngOnInit() {
     const pollId = this.route.snapshot.paramMap.get('id');
@@ -30,28 +35,31 @@ export class PollResultsComponent implements OnInit {
     }
 
     this.pollService.getPollById(pollId).subscribe({
-      next: (poll) => {
+      next: poll => {
         if (!poll) {
           this.errorMessage = 'Poll not found';
-          this.isLoading = false;
+          this.isLoading    = false;
           return;
         }
 
-        this.poll = poll;
+        this.poll       = poll;
         this.totalVotes = poll.totalVotes;
 
-        // Simulăm rezultatele în lipsa voturilor per opțiune (doar pentru demo)
+        /* allow back-to-poll if user has NOT voted and results are public */
+        this.canVote = !!poll.publicResults && !poll.hasVoted;
+
+        /* mock per-option results for demo */
         const votesPerOption = Math.floor(
           poll.totalVotes / poll.options.length
         );
-        const results = poll.options.map((opt, i) => {
+        this.results = poll.options.map((opt, i) => {
           const votes =
             i === 0
-              ? poll.totalVotes - votesPerOption * (poll.options.length - 1) // prima opțiune primește restul
+              ? poll.totalVotes - votesPerOption * (poll.options.length - 1)
               : votesPerOption;
 
           return {
-            optionId: opt.id,
+            optionId:   opt.id,
             optionText: opt.text,
             votes,
             percentage:
@@ -61,13 +69,12 @@ export class PollResultsComponent implements OnInit {
           };
         });
 
-        this.results = results;
         this.isLoading = false;
       },
-      error: (err) => {
+      error: err => {
         console.error('Error loading poll:', err);
         this.errorMessage = 'Failed to load poll results.';
-        this.isLoading = false;
+        this.isLoading    = false;
       },
     });
   }

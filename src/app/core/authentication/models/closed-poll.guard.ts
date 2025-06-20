@@ -12,9 +12,13 @@ import { map, catchError } from 'rxjs/operators';
 import { PollService } from '../../../services/poll.service';
 
 /**
- * ▸ Blocks the vote page when a poll has already ended.  
- * ▸ Redirects to `/poll/closed?id=<id>&title=<title>` so users can
- *   choose to view results or go back to the list.
+ * Guard that blocks the vote page when a **public** poll has already ended.
+ *
+ * ▸ **Private polls are exempt** – users with the link can still open them
+ *   after the end date.  
+ * ▸ When a public poll is closed, redirects to
+ *   `/poll/closed?id=<id>&title=<title>` so users can choose to view results
+ *   or return to the list.
  */
 @Injectable({ providedIn: 'root' })
 export class ClosedPollGuard implements CanActivate {
@@ -25,18 +29,24 @@ export class ClosedPollGuard implements CanActivate {
     route: ActivatedRouteSnapshot,
     _state: RouterStateSnapshot
   ): Observable<boolean | UrlTree> {
-    const pollId = route.paramMap.get('id')!;   // route is /poll/:id
+    const pollId = route.paramMap.get('id')!;   // route: /poll/:id
 
     return this.pollService.getPollById(pollId).pipe(
       map(poll => {
-        if (!poll) return true;
-        const now       = new Date();
-        const hasEnded  = poll.endDate && new Date(poll.endDate) < now;
+        /* ── allow navigation if poll doesn’t exist OR is private ── */
+        if (!poll || poll.isPrivate) {
+          return true;
+        }
 
-        // ✅ still open → allow navigation to vote component
-        if (!hasEnded) return true;
+        /* ── public poll: block if it has ended ── */
+        const now      = new Date();
+        const hasEnded = poll.endDate && new Date(poll.endDate) < now;
 
-        // 🚧 closed → redirect to the “poll closed” page
+        if (!hasEnded) {
+          return true;                           // poll still open → allow
+        }
+
+        // poll closed → redirect to friendly “closed” page
         return this.router.createUrlTree(
           ['/poll/closed'],
           {
@@ -48,8 +58,7 @@ export class ClosedPollGuard implements CanActivate {
         );
       }),
 
-      /* If API fails, allow route; PollExistsGuard (earlier in the
-         canActivate chain) will already handle missing polls.          */
+      /* If the API fails, proceed; earlier guards handle missing polls. */
       catchError(() => of(true))
     );
   }

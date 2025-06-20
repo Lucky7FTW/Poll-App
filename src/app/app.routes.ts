@@ -1,52 +1,75 @@
 import { Routes } from '@angular/router';
-import { HomeComponent } from './components/home/home.component';
-import { PollListComponent } from './components/poll-list/poll-list.component';
-import { CreatePollComponent } from './components/create-poll/create-poll.component';
-import { PollVoteComponent } from './components/poll-vote/poll-vote.component';
-import { PollResultsComponent } from './components/poll-results/poll-results.component';
-import { LoginComponent } from './components/login/login.component';
+
+/* public pages */
+import { HomeComponent }         from './components/home/home.component';
+import { PollListComponent }     from './components/poll-list/poll-list.component';
+import { PollNotOpenComponent }  from './components/not-open/not-open.component';
+import { PollClosedComponent }   from './components/poll-closed/poll-closed.component';
+import { LoginComponent }        from './components/login/login.component';
+import { SignupComponent }       from './components/signup/signup.component';
+import { ContactComponent }      from './components/footer/contact/contact.component';
+import { TermsComponent }        from './components/footer/terms/terms.component';
+import { PrivacyComponent }      from './components/footer/privacy/privacy.component';
+import { NotFoundComponent }     from './components/not-found-component/not-found.component';
+
+/* poll workflow */
+import { CreatePollComponent }   from './components/create-poll/create-poll.component';
+import { PollVoteComponent }     from './components/poll-vote/poll-vote.component';
+import { PollResultsComponent }  from './components/poll-results/poll-results.component';
 import { PrivatePollsComponent } from './components/private-polls/private-polls.component';
-import { SignupComponent } from './components/signup/signup.component';
-import { ContactComponent } from './components/footer/contact/contact.component';
-import { TermsComponent } from './components/footer/terms/terms.component';
-import { PrivacyComponent } from './components/footer/privacy/privacy.component';
-import { UserProfileComponent } from './components/user-profile/user-profile.component';
-import { AuthGuard } from './core/authentication/auth.guard';
-import { PollExistsGuard } from './core/authentication/models/poll-exists.guard';
-import { NotFoundComponent } from './components/not-found-component/not-found.component';
-import { PollNotOpenComponent } from './components/not-open/not-open.component';
-import { InactivePollGuard } from './core/authentication/models/inactive-poll.guard';
-import { ClosedPollGuard } from './core/authentication/models/closed-poll.guard';
-import { PollClosedComponent } from './components/poll-closed/poll-closed.component';
+
+/* profile (now under pages/) */
+import { UserProfileComponent }  from './components/user-profile/user-profile.component';
+
+/* guards */
+import { AuthGuard }        from './core/authentication/auth.guard';
+import { PollExistsGuard }  from './core/authentication/models/poll-exists.guard';
+import { InactivePollGuard }from './core/authentication/models/inactive-poll.guard';
+import { ClosedPollGuard }  from './core/authentication/models/closed-poll.guard';
+import { ResultsPermissionGuard } from './core/authentication/models/results-permission.guard';
 
 export const routes: Routes = [
-  { path: '', component: HomeComponent },
-  { path: 'polls', component: PollListComponent },
+  /* home & general */
+  { path: '',          component: HomeComponent },
+  { path: 'polls',     component: PollListComponent },
+
+  /* poll create / edit */
+  { path: 'create',    component: CreatePollComponent, canActivate: [AuthGuard] },
+
+  /* poll live & results */
   {
-    path: 'create',
-    component: CreatePollComponent,
-    canActivate: [AuthGuard]
+    /* ① run the existence-check first so we fail fast if the poll ID is bad,
+       then verify that the poll is actually open, and finally be sure it’s
+       not closed yet. */
+    path: 'poll/:id',
+    component: PollVoteComponent,
+    canActivate: [PollExistsGuard, InactivePollGuard, ClosedPollGuard],
   },
-    {path: 'poll/not-open',
-  component: PollNotOpenComponent},
-  { path: 'poll/closed', component: PollClosedComponent },
   {
-    path: 'private-polls',
-    component: PrivatePollsComponent,
-    //canActivate: [authGuard],
+    /* ② results are only shown for valid and already-closed polls */
+    path: 'poll/:id/results',
+    component: PollResultsComponent,
+    canActivate: [PollExistsGuard,ResultsPermissionGuard],
   },
-  { path: 'poll/:id', component: PollVoteComponent, canActivate: [InactivePollGuard,PollExistsGuard,ClosedPollGuard],},
-  { path: 'poll/:id/results', component: PollResultsComponent, canActivate: [PollExistsGuard] },
-  { path: 'login', component: LoginComponent },
-  { path: 'signup', component: SignupComponent },
-  { path: 'contact', component: ContactComponent },
-  { path: 'terms', component: TermsComponent },
-  { path: 'privacy', component: PrivacyComponent },
-  {
-    path: 'user-profile',
-    component: UserProfileComponent,
-    //canActivate: [authGuard],
-  },
-  { path: '404', component: NotFoundComponent  },
-  { path: '**', redirectTo: '' },
+
+  /* redirect targets used by guards */
+  { path: 'poll/not-open', component: PollNotOpenComponent },
+  { path: 'poll/closed',   component: PollClosedComponent },
+
+  /* private-link polls — only for logged-in users */
+  { path: 'private-polls', component: PrivatePollsComponent, canActivate: [AuthGuard] },
+
+  /* auth & legal */
+  { path: 'login',    component: LoginComponent },
+  { path: 'signup',   component: SignupComponent },
+  { path: 'contact',  component: ContactComponent },
+  { path: 'terms',    component: TermsComponent },
+  { path: 'privacy',  component: PrivacyComponent },
+
+  /* user profile area */
+  { path: 'profile',  component: UserProfileComponent, canActivate: [AuthGuard] },
+
+  /* fallback / 404 */
+  { path: '404', component: NotFoundComponent },
+  { path: '**',  redirectTo: '404' },
 ];

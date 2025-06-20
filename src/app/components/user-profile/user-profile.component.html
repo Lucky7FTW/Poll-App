@@ -1,239 +1,48 @@
+<!-- src/app/pages/user-profile/user-profile.component.html -->
 <div class="profile-container">
-    <div class="profile-card">
-        <div class="page-header">
-            <h1 class="page-title">My Profile</h1>
-            <button routerLink="/" class="home-button">
-                <span class="home-icon">🏠</span>
-                Back to Home
-            </button>
-        </div>
+  <div class="profile-card">
 
-        <div class="profile-tabs">
-            <button [class.active]="activeTab === 'profile'" (click)="setActiveTab('profile')" class="tab-button">
-                <span class="tab-icon">👤</span>
-                Profile
-            </button>
-            <button [class.active]="activeTab === 'polls'" (click)="setActiveTab('polls')" class="tab-button">
-                <span class="tab-icon">📊</span>
-                My Polls
-            </button>
-            <button [class.active]="activeTab === 'security'" (click)="setActiveTab('security')" class="tab-button">
-                <span class="tab-icon">🔒</span>
-                Security
-            </button>
-        </div>
-
-        <div *ngIf="loading" class="loading-container">
-            <div class="loading-spinner"></div>
-        </div>
-
-        <!-- Profile Tab -->
-        <div *ngIf="activeTab === 'profile' && !loading" class="tab-content">
-            <div class="profile-info">
-                <div class="avatar-section">
-                    <div class="avatar">
-                        {{ profileForm.get('displayName')?.value?.charAt(0) || 'U' }}
-                    </div>
-                    <div class="avatar-actions">
-                        <button class="avatar-button">Change Photo</button>
-                    </div>
-                </div>
-
-                <div class="profile-form-container">
-                    <form [formGroup]="profileForm" (ngSubmit)="updateProfile()" class="profile-form">
-                        <div class="form-group">
-                            <label for="displayName" class="form-label">Display Name</label>
-                            <input type="text" id="displayName" formControlName="displayName" class="form-input"
-                                [class.input-error]="profileForm.get('displayName')?.invalid && profileForm.get('displayName')?.touched">
-                            <div *ngIf="profileForm.get('displayName')?.invalid && profileForm.get('displayName')?.touched"
-                                class="form-error">
-                                Display name is required (minimum 3 characters)
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="email" class="form-label">Email Address</label>
-                            <input type="email" id="email" formControlName="email" class="form-input disabled">
-                            <div class="form-note">Email cannot be changed</div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="bio" class="form-label">Bio</label>
-                            <textarea id="bio" formControlName="bio" class="form-textarea" rows="4"
-                                placeholder="Tell us a bit about yourself..."></textarea>
-                            <div class="form-note">{{ profileForm.get('bio')?.value?.length || 0 }}/200 characters</div>
-                        </div>
-
-                        <div *ngIf="updateSuccess" class="success-message">
-                            Profile updated successfully!
-                        </div>
-
-                        <div *ngIf="updateError" class="error-message">
-                            {{ updateError }}
-                        </div>
-
-                        <button type="submit" class="submit-button" [disabled]="profileForm.invalid || loading">
-                            Update Profile
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Polls Tab -->
-        <div *ngIf="activeTab === 'polls' && !loading" class="tab-content">
-            <div class="stats-section">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <!-- <div class="stat-value">{{ pollStats.totalPolls }}</div> -->
-                        <div class="stat-value">{{ 1 }}</div>
-                        <div class="stat-label">Total Polls</div>
-                    </div>
-                    <div class="stat-card">
-                        <!-- <div class="stat-value">{{ pollStats.totalVotes }}</div> -->
-                        <div class="stat-value">{{ 2 }}</div>
-                        <div class="stat-label">Total Votes</div>
-                    </div>
-                    <div class="stat-card">
-                        <!-- <div class="stat-value">{{ pollStats.publicPolls }}</div> -->
-                        <div class="stat-value">{{ 3 }}</div>
-                        <div class="stat-label">Public Polls</div>
-                    </div>
-                    <div class="stat-card">
-                        <!-- <div class="stat-value">{{ pollStats.privatePolls }}</div> -->
-                        <div class="stat-value">{{ 4 }}</div>
-                        <div class="stat-label">Private Polls</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="recent-polls-section">
-                <div class="section-header">
-                    <h2 class="section-title">Recent Polls</h2>
-                    <div class="section-actions">
-                        <a routerLink="/polls" class="action-link">View All Public Polls</a>
-                        <a routerLink="/private-polls" class="action-link">View All Private Polls</a>
-                    </div>
-                </div>
-
-                <!-- <div *ngIf="(userPolls$ | async)?.length === 0" class="empty-state"> -->
-                <div *ngIf="polls.length === 0" class="empty-state">
-                    <p>You haven't created any polls yet.</p>
-                    <a routerLink="/create" class="primary-button">Create Your First Poll</a>
-                </div>
-
-                <!-- <div *ngIf="(userPolls$ | async)?.length > 0" class="polls-list"> -->
-                <div *ngIf="polls.length > 0" class="polls-list">
-                    <!-- <div *ngFor="let poll of getRecentPolls(userPolls$ | async)" class="poll-item"> -->
-                    <div *ngFor="let poll of polls" class="poll-item">
-                        <div class="poll-item-content">
-                            <div class="poll-item-info">
-                                <h3 class="poll-item-title">
-                                    <a [routerLink]="['/poll', poll.id]">{{ poll.title }}</a>
-                                </h3>
-
-                                <!-- Poll Schedule Information -->
-                                <div *ngIf="poll.startDate || poll.endDate" class="poll-schedule">
-                                    <div *ngIf="poll.startDate" class="schedule-item">
-                                        <span class="schedule-icon">🚀</span>
-                                        <span class="schedule-label">Starts:</span>
-                                        <span class="schedule-date">{{ poll.startDate | date:'medium' }}</span>
-                                    </div>
-                                    <div *ngIf="poll.endDate" class="schedule-item">
-                                        <span class="schedule-icon">🏁</span>
-                                        <span class="schedule-label">Ends:</span>
-                                        <span class="schedule-date">{{ poll.endDate | date:'medium' }}</span>
-                                    </div>
-                                </div>
-
-                                <!-- Poll Status -->
-                                <div class="poll-status">
-                                    <span [ngClass]="getPollStatusClass(poll)" class="status-badge">
-                                        {{ getPollStatus(poll) }}
-                                    </span>
-                                </div>
-
-                                <p class="poll-item-meta">
-                                    Created on {{ poll.createdAt | date:'medium' }} • {{ poll.totalVotes || 0 }}
-                                    votes
-                                </p>
-                            </div>
-                            <div class="poll-item-badges">
-                                <!-- <div class="poll-item-badge" [class.private-badge]="!poll.isPublic"
-                                    [class.public-badge]="poll.isPublic">
-                                    {{ poll.isPublic ? 'Public' : 'Private' }}
-                                </div> -->
-                            </div>
-                        </div>
-                        <div class="poll-item-actions">
-                            <a [routerLink]="['/poll', poll.id]" class="action-link"
-                                [class.disabled]="!isPollActive(poll)">
-                                Vote
-                            </a>
-                            <a [routerLink]="['/poll', poll.id, 'results']" class="action-link">Results</a>
-                            <a routerLink="/create" [queryParams]="{edit: poll.id}" class="action-link">Edit</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Security Tab -->
-        <div *ngIf="activeTab === 'security' && !loading" class="tab-content">
-            <div class="security-section">
-                <h2 class="section-title">Change Password</h2>
-                <form [formGroup]="passwordForm" (ngSubmit)="updatePassword()" class="password-form">
-                    <div class="form-group">
-                        <label for="currentPassword" class="form-label">Current Password</label>
-                        <input type="password" id="currentPassword" formControlName="currentPassword" class="form-input"
-                            [class.input-error]="passwordForm.get('currentPassword')?.invalid && passwordForm.get('currentPassword')?.touched">
-                        <div *ngIf="passwordForm.get('currentPassword')?.invalid && passwordForm.get('currentPassword')?.touched"
-                            class="form-error">
-                            Current password is required
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="newPassword" class="form-label">New Password</label>
-                        <input type="password" id="newPassword" formControlName="newPassword" class="form-input"
-                            [class.input-error]="passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched">
-                        <div *ngIf="passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched"
-                            class="form-error">
-                            New password must be at least 6 characters
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="confirmPassword" class="form-label">Confirm New Password</label>
-                        <input type="password" id="confirmPassword" formControlName="confirmPassword" class="form-input"
-                            [class.input-error]="(passwordForm.get('confirmPassword')?.invalid || passwordForm.hasError('mismatch')) && passwordForm.get('confirmPassword')?.touched">
-                        <div *ngIf="passwordForm.hasError('mismatch') && passwordForm.get('confirmPassword')?.touched"
-                            class="form-error">
-                            Passwords do not match
-                        </div>
-                    </div>
-
-                    <div *ngIf="passwordUpdateSuccess" class="success-message">
-                        Password updated successfully!
-                    </div>
-
-                    <div *ngIf="passwordUpdateError" class="error-message">
-                        {{ passwordUpdateError }}
-                    </div>
-
-                    <button type="submit" class="submit-button" [disabled]="passwordForm.invalid || loading">
-                        Update Password
-                    </button>
-                </form>
-            </div>
-
-            <div class="danger-zone">
-                <h2 class="danger-title">Danger Zone</h2>
-                <div class="danger-content">
-                    <p>Once you delete your account, there is no going back. Please be certain.</p>
-                    <button (click)="deleteAccount()" class="delete-button">Delete My Account</button>
-                </div>
-            </div>
-        </div>
+    <!-- ───── Header row ───── -->
+    <div class="page-header">
+      <h1 class="page-title">My Profile</h1>
+      <button routerLink="/" class="home-button">
+        <span class="home-icon">🏠</span> Back to Home
+      </button>
     </div>
+
+    <!-- ───── Tabs ───── -->
+    <div class="profile-tabs">
+      <button class="tab-button"
+              [class.active]="activeTab==='profile'"
+              (click)="setTab('profile')">
+        <span class="tab-icon">👤</span> Profile
+      </button>
+
+      <button class="tab-button"
+              [class.active]="activeTab==='polls'"
+              (click)="setTab('polls')">
+        <span class="tab-icon">📊</span> My Polls
+      </button>
+
+      <button class="tab-button"
+              [class.active]="activeTab==='security'"
+              (click)="setTab('security')">
+        <span class="tab-icon">🔒</span> Security
+      </button>
+    </div>
+
+    <!-- ───── Tab content wrappers (keep .tab-content for CSS) ───── -->
+    <div class="tab-content" *ngIf="activeTab==='profile'">
+      <app-profile-info-form></app-profile-info-form>
+    </div>
+
+    <div class="tab-content" *ngIf="activeTab==='polls'">
+      <app-user-polls></app-user-polls>
+    </div>
+
+    <div class="tab-content" *ngIf="activeTab==='security'">
+      <app-security-settings></app-security-settings>
+    </div>
+
+  </div>
 </div>
