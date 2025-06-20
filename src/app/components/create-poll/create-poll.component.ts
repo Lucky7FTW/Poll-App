@@ -1,4 +1,5 @@
-import { Component, OnInit, inject } from '@angular/core';
+// src/app/pages/create-poll/create-poll.component.ts
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormBuilder,
@@ -21,7 +22,7 @@ import { AuthService } from '../../core/authentication/auth.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './create-poll.component.html',
-  styleUrl: './create-poll.component.css',
+  styleUrls: ['./create-poll.component.css'],   // (plural keeps Angular happy)
 })
 export class CreatePollComponent implements OnInit {
   /* ─────────────────── DI ─────────────────── */
@@ -31,24 +32,35 @@ export class CreatePollComponent implements OnInit {
   private route       = inject(ActivatedRoute);
   private router      = inject(Router);
 
+  /* ───────────── reactive edit-mode flag & UI text helpers ───────────── */
+  private readonly _editMode = signal(false);
+  /** expose as readonly so the template can _call_ it: editMode() */
+  readonly editMode = this._editMode.asReadonly();
+
+  readonly titleText  = computed(() =>
+    this.editMode() ? 'Edit Poll' : 'Create a New Poll');
+  readonly submitText = computed(() =>
+    this.editMode() ? 'Save Changes' : 'Create Poll');
+  readonly loadingTxt = computed(() =>
+    this.editMode() ? 'Saving…'      : 'Creating Poll…');
+
   /* ────────────────── form ────────────────── */
   pollForm: FormGroup = this.fb.group({
-    title:       ['', [Validators.required, Validators.maxLength(120)]],
-    description: ['', [Validators.maxLength(500)]],
+    title:         ['', [Validators.required, Validators.maxLength(120)]],
+    description:   ['', [Validators.maxLength(500)]],
     allowMultiple: [false],
-    isPrivate:   [false],
-    options:     this.fb.array([], Validators.minLength(2)),
-    startDate:   [{ value: null, disabled: false }],
-    endDate:     [{ value: null, disabled: false }],
+    isPrivate:     [false],
+    options:       this.fb.array([], Validators.minLength(2)),
+    startDate:     [{ value: null, disabled: false }],
+    endDate:       [{ value: null, disabled: false }],
   });
 
   /* ────────────────── ui state ────────────────── */
-  isLoading   = false;
+  isLoading     = false;
   errorMessage: string | null = null;
-  editMode  = false;
   private pollId: string | null = null;
-  startLocked = false;
-  endLocked   = false;
+  startLocked   = false;
+  endLocked     = false;
 
   /* ------------------------------- getters ------------------------------- */
   get options(): FormArray {
@@ -60,11 +72,11 @@ export class CreatePollComponent implements OnInit {
     this.route.queryParamMap.pipe(take(1)).subscribe(params => {
       const edit = params.get('edit');
       if (edit) {
-        this.editMode = true;
-        this.pollId   = edit;
+        this._editMode.set(true);      // flip the signal
+        this.pollId = edit;
         this.loadPoll(edit);
       } else {
-        // seed two blank options for new poll
+        // seed two blank options for a new poll
         this.addOption();
         this.addOption();
       }
@@ -97,12 +109,12 @@ export class CreatePollComponent implements OnInit {
         this.endLocked   = !!poll.endDate   && new Date(poll.endDate).getTime() <= now;
 
         this.pollForm.patchValue({
-          title:       poll.title,
-          description: poll.description ?? '',
-          isPrivate:   poll.isPrivate ?? false,
+          title:         poll.title,
+          description:   poll.description ?? '',
+          isPrivate:     poll.isPrivate   ?? false,
           allowMultiple: poll.allowMultiple ?? false,
-          startDate:   poll.startDate ?? null,
-          endDate:     poll.endDate   ?? null,
+          startDate:     poll.startDate ?? null,
+          endDate:       poll.endDate   ?? null,
         });
 
         if (this.startLocked) this.pollForm.get('startDate')!.disable({ emitEvent: false });
@@ -110,10 +122,8 @@ export class CreatePollComponent implements OnInit {
 
         this.options.clear();
         if (poll.options?.length) {
-          poll.options.forEach((opt: { id?: string; text: string }) => {
-            const grp = this.fb.group({ text: [opt.text, Validators.required] });
-            this.options.push(grp);
-          });
+          poll.options.forEach(opt =>
+            this.options.push(this.fb.group({ text: [opt.text, Validators.required] })));
         } else {
           this.addOption();
           this.addOption();
@@ -121,7 +131,7 @@ export class CreatePollComponent implements OnInit {
 
         this.isLoading = false;
       },
-      (err: any) => this.finishWithError(err.message ?? 'Failed to load poll'),
+      err => this.finishWithError(err.message ?? 'Failed to load poll'),
     );
   }
 
@@ -164,20 +174,20 @@ export class CreatePollComponent implements OnInit {
     const raw = this.pollForm.getRawValue(); // includes disabled controls
 
     const pollPayload: Partial<Poll> = {
-      title:       raw.title,
-      description: raw.description,
-      isPrivate:   raw.isPrivate,
+      title:         raw.title,
+      description:   raw.description,
+      isPrivate:     raw.isPrivate,
       allowMultiple: raw.allowMultiple,
-      startDate:   raw.startDate ? new Date(raw.startDate).toISOString() : undefined,
-      endDate:     raw.endDate   ? new Date(raw.endDate).toISOString()   : undefined,
-      options:     raw.options.map((o: { text: string }, idx: number) => ({ id: `opt${idx}`, text: o.text })),
+      startDate:     raw.startDate ? new Date(raw.startDate).toISOString() : undefined,
+      endDate:       raw.endDate   ? new Date(raw.endDate).toISOString()   : undefined,
+      options:       raw.options.map((o: { text: string }, i: number) => ({ id: `opt${i}`, text: o.text })),
     };
 
     this.isLoading = true;
     this.errorMessage = null;
 
     let request$: Observable<string | void>;
-    if (this.editMode && this.pollId) {
+    if (this.editMode() && this.pollId) {
       request$ = this.pollService.editPoll(this.pollId, pollPayload);
     } else {
       request$ = this.pollService.createPoll({
@@ -188,16 +198,16 @@ export class CreatePollComponent implements OnInit {
     }
 
     request$.pipe(take(1)).subscribe(
-      (result: any) => {
+      result => {
         this.isLoading = false;
-        if (this.editMode) {
+        if (this.editMode()) {
           this.router.navigate(['/profile'], { queryParams: { tab: 'polls' } });
         } else {
           const navId = typeof result === 'string' ? result : '';
           this.router.navigate(['/poll', navId]);
         }
       },
-      (err: any) => this.finishWithError(err.message ?? 'Failed to save poll'),
+      err => this.finishWithError(err.message ?? 'Failed to save poll'),
     );
   }
 

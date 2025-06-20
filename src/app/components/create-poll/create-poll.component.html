@@ -1,7 +1,9 @@
 <div class="create-poll-container">
   <div class="poll-card">
-    <h2 class="poll-title">Create a New Poll</h2>
+    <!-- dynamic title -->
+    <h2 class="poll-title">{{ titleText() }}</h2>
 
+    <!-- error banner -->
     <div *ngIf="errorMessage" class="error-message">
       {{ errorMessage }}
     </div>
@@ -165,9 +167,9 @@
             formControlName="allowMultiple"
             class="checkbox-input"
           />
-          <label for="allowMultiple" class="checkbox-label"
-            >Allow multiple selections</label
-          >
+          <label for="allowMultiple" class="checkbox-label">
+            Allow multiple selections
+          </label>
         </div>
 
         <div class="checkbox-group">
@@ -177,9 +179,9 @@
             formControlName="isPrivate"
             class="checkbox-input"
           />
-          <label for="isPrivate" class="checkbox-label"
-            >Private poll (only accessible via link)</label
-          >
+          <label for="isPrivate" class="checkbox-label">
+            Private poll (only accessible via link)
+          </label>
         </div>
       </div>
 
@@ -190,8 +192,8 @@
         [disabled]="pollForm.invalid || isLoading"
         [class.loading]="isLoading"
       >
-        <span *ngIf="isLoading">Creating Poll…</span>
-        <span *ngIf="!isLoading">Create Poll</span>
+        <span *ngIf="isLoading">{{ loadingTxt() }}</span>
+        <span *ngIf="!isLoading">{{ submitText() }}</span>
       </button>
     </form>
   </div>

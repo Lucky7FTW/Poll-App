@@ -56,7 +56,14 @@
     <a [routerLink]="['/poll', poll.id]"
        [class.disabled]="!isPollActive(poll)">Vote</a>
     <a [routerLink]="['/poll', poll.id, 'results']">Results</a>
-    <a routerLink="/create" [queryParams]="{ edit: poll.id }">Edit</a>
+
+    <!-- Edit – shown only for upcoming polls -->
+    <button *ngIf="canEditPoll(poll)"
+            type="button"
+            class="link-button"
+            (click)="editPoll(poll.id)">
+      Edit
+    </button>
 
     <!-- Delete -->
     <button *ngIf="canDeletePoll(poll)"
