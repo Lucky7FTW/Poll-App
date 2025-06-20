@@ -1,7 +1,7 @@
+<!-- src/app/pages/poll-vote/poll-vote.component.html -->
 <div class="poll-vote-container">
   <div class="poll-card">
-
-    <!-- banner if user was bounced from /results -->
+    <!-- banner added by ResultsPermissionGuard redirect -->
     <div *ngIf="mustVoteNotice" class="info-banner">
       Please vote first to unlock the results.
     </div>
@@ -11,15 +11,14 @@
       <div class="loading-spinner"></div>
     </div>
 
-    <!-- error -->
+    <!-- generic error -->
     <div *ngIf="errorMessage" class="error-message">
       {{ errorMessage }}
     </div>
 
-    <!-- poll found -->
+    <!-- poll loaded -->
     <div *ngIf="!isLoading && poll">
-
-      <!-- header -->
+      <!-- ───── header ───── -->
       <div class="poll-header">
         <h2 class="poll-title">{{ poll.title }}</h2>
         <p *ngIf="poll.description" class="poll-description">
@@ -31,24 +30,26 @@
         </div>
       </div>
 
-      <!-- already voted -->
+      <!-- ───── already-voted notice ───── -->
       <div *ngIf="hasVoted" class="voted-message">
         You have already voted in this poll.
         <a
+          *ngIf="canViewResults"
           [routerLink]="['/poll', poll.id, 'results']"
           class="results-link"
-          >View results</a
         >
+          View results
+        </a>
       </div>
 
-      <!-- voting form -->
+      <!-- ───── voting form (only if user hasn’t voted) ───── -->
       <form
         *ngIf="!hasVoted"
         [formGroup]="voteForm"
         (ngSubmit)="onSubmit()"
         class="vote-form"
       >
-        <!-- multiple choice -->
+        <!-- multiple-choice -->
         <div *ngIf="poll.allowMultiple" class="options-container">
           <div class="options-label">Select multiple options (checkbox)</div>
 
@@ -64,12 +65,14 @@
               <label
                 [for]="'option-' + option.id"
                 class="option-label"
-              >{{ option.text }}</label>
+              >
+                {{ option.text }}
+              </label>
             </div>
           </div>
         </div>
 
-        <!-- single choice -->
+        <!-- single-choice -->
         <div *ngIf="!poll.allowMultiple" class="options-container">
           <div class="options-label">Select one option (radio)</div>
 
@@ -85,11 +88,14 @@
               <label
                 [for]="'option-' + option.id"
                 class="option-label"
-              >{{ option.text }}</label>
+              >
+                {{ option.text }}
+              </label>
             </div>
           </div>
         </div>
 
+        <!-- submit -->
         <button
           type="submit"
           class="submit-button"
@@ -105,13 +111,16 @@
         </button>
       </form>
 
-      <!-- footer -->
+      <!-- ───── footer ───── -->
       <div class="poll-footer">
         <a [routerLink]="['/polls']" class="back-link">Back to Polls</a>
         <a
+          *ngIf="canViewResults"
           [routerLink]="['/poll', poll.id, 'results']"
           class="results-link"
-        >View Results</a>
+        >
+          View Results
+        </a>
       </div>
     </div>
 

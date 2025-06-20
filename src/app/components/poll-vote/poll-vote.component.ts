@@ -1,3 +1,4 @@
+// src/app/pages/poll-vote/poll-vote.component.ts
 import { Component, OnInit, inject } from '@angular/core';
 import {
   FormBuilder,
@@ -18,7 +19,7 @@ import { AuthService } from '../../core/authentication/auth.service';
   standalone: true,
   imports: [ReactiveFormsModule, CommonModule, RouterLink],
   templateUrl: './poll-vote.component.html',
-  styleUrls: ['./poll-vote.component.css'],   // ✅ plural – Angular looks for an array
+  styleUrls: ['./poll-vote.component.css'],
 })
 export class PollVoteComponent implements OnInit {
   /* ── DI ── */
@@ -39,6 +40,10 @@ export class PollVoteComponent implements OnInit {
   hasVoted       = false;
   mustVoteNotice = false;
   errorMessage   = '';
+
+  /** extra helper flags */
+  private isCreator     = false;
+  private publicResults = false;
 
   voteForm: FormGroup = this.fb.group({
     selectedOption: ['', Validators.required],   // radio
@@ -65,6 +70,11 @@ export class PollVoteComponent implements OnInit {
           if (!poll) throw new Error('not-found');
           this.poll = poll;
           this.evaluateTimeWindow(poll);
+
+          /* compute helper flags */
+          this.isCreator     = user.email === poll.createdBy;
+          this.publicResults = !!poll.publicResults;
+
           return this.pollService.checkIfUserVoted(pollId, user.id);
         }),
         first()
@@ -84,6 +94,10 @@ export class PollVoteComponent implements OnInit {
   }
 
   /* ── helpers ── */
+  get canViewResults(): boolean {
+    return this.publicResults || this.hasVoted || this.isCreator;
+  }
+
   private evaluateTimeWindow(poll: Poll) {
     const now = new Date();
     this.hasStarted = !poll.startDate || new Date(poll.startDate) <= now;
