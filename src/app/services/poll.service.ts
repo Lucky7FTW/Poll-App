@@ -1,14 +1,12 @@
+// src/app/services/poll.service.ts
 import { Injectable, inject } from '@angular/core';
 import {
   Database,
-  ref,
-  push,
-  set,
-  update,
-  get,
-  onValue,
+  ref, push, set, update, get, onValue
 } from '@angular/fire/database';
-import { Observable, from, map, combineLatest, of, switchMap } from 'rxjs';
+import {
+  Observable, from, of, map, switchMap, combineLatest
+} from 'rxjs';
 
 import { Poll } from '../models/poll.model';
 import { AuthService } from '../core/authentication/auth.service';
@@ -21,74 +19,63 @@ export class PollService {
   private pollPath = 'polls';
   private votePath = 'votes';
 
-  /* ──────────────────────────────────────────────────────────────── */
-  /*                         READ OPERATIONS                         */
-  /* ──────────────────────────────────────────────────────────────── */
+  /* ── helper: create push-key ── */
+  generateNewPollKey(): string {
+    return push(ref(this.db, this.pollPath)).key!;
+  }
 
-  /** Single poll (adds `hasVoted` if a user is logged in) */
+  /* ── helper: encode a string for use as a Firebase key ── */
+  private encodeKey(raw: string): string {
+    return raw.replace(/[.#$/\[\]]/g, '_');
+  }
+
+  /* ── READ: single poll ── */
   getPollById(id: string): Observable<Poll | null> {
     const pollRef = ref(this.db, `${this.pollPath}/${id}`);
-
     return from(get(pollRef)).pipe(
       map(snap => (snap.exists() ? { id, ...(snap.val() as any) } : null)),
       switchMap(poll => {
         if (!poll) return of(null);
-        const userId = this.auth.user?.id;
-        if (!userId) return of(poll);
-        return this.checkIfUserVoted(id, userId).pipe(
+        const email = this.auth.user?.email;
+        if (!email) return of(poll);
+        return this.checkIfUserVoted(id, email).pipe(
           map(voted => ({ ...poll, hasVoted: voted }))
         );
       })
     );
   }
 
-  /** All polls created by the given e-mail (adds `hasVoted`) */
+  /* ── READ: by creator e-mail ── */
   getPollsByUser(createdBy: string): Observable<Poll[]> {
     return this.getAllPolls().pipe(
       map(list => list.filter(p => p.createdBy === createdBy))
     );
   }
 
-  /** Live list of *all* polls (adds `hasVoted`) */
+  /* ── READ: live list ── */
   getAllPolls(): Observable<Poll[]> {
     const pollsRef = ref(this.db, this.pollPath);
-
     return new Observable<Poll[]>(observer => {
-      const unsubscribe = onValue(
+      const unsub = onValue(
         pollsRef,
         snap => {
-          const raw: Poll[] = [];
-          snap.forEach(child => {
-            raw.push({ id: child.key!, ...child.val() });
-            return false;
-          });
-
-          /* augment with hasVoted */
-          this.attachHasVoted(raw).subscribe({
-            next: pollsWithFlag => observer.next(pollsWithFlag),
-            error: err => observer.error(err),
+          const arr: Poll[] = [];
+          snap.forEach(c => { arr.push({ id: c.key!, ...c.val() }); return false; });
+          this.attachHasVoted(arr).subscribe({
+            next: p => observer.next(p),
+            error: e => observer.error(e)
           });
         },
         err => observer.error(err)
       );
-
-      return () => unsubscribe();
+      return () => unsub();
     });
   }
 
-  /** Has the **current** user voted on this poll? */
-  checkIfUserVoted(pollId: string, userId: string): Observable<boolean> {
-    const voteRef = ref(this.db, `${this.votePath}/${pollId}/${userId}`);
-    return from(get(voteRef)).pipe(map(snap => snap.exists()));
-  }
-
-  /* ──────────────────────────────────────────────────────────────── */
-  /*                    CREATE / UPDATE / VOTING                     */
-  /* ──────────────────────────────────────────────────────────────── */
-
+  /* ── CREATE / EDIT / DELETE ── */
   createPoll(
     poll: Omit<Poll, 'id'> & Partial<Pick<Poll, 'id'>>,
-    customId?: string,
+    customId?: string
   ): Observable<string> {
     const pollId  = customId ?? push(ref(this.db, this.pollPath)).key!;
     const pollRef = ref(this.db, `${this.pollPath}/${pollId}`);
@@ -98,62 +85,55 @@ export class PollService {
   updatePoll(id: string, data: Partial<Poll>): Observable<void> {
     return from(update(ref(this.db, `${this.pollPath}/${id}`), data));
   }
-  editPoll = this.updatePoll;   // alias
+  editPoll = this.updatePoll;
 
-  submitVote(
-    pollId: string,
-    userId: string,
-    optionIds: string[],
-  ): Observable<void> {
-    const voteRef = ref(this.db, `${this.votePath}/${pollId}/${userId}`);
-    const pollRef = ref(this.db, `${this.pollPath}/${pollId}`);
-    const voteData = { optionIds, createdAt: new Date().toISOString() };
+  deletePoll(id: string): Observable<void> {
+    return from(set(ref(this.db, `${this.pollPath}/${id}`), null));
+  }
 
-    return new Observable<void>(observer => {
+  /* ── VOTING ── */
+  checkIfUserVoted(pollId: string, email: string): Observable<boolean> {
+    const safeEmail = this.encodeKey(email);
+    return from(get(ref(this.db, `${this.votePath}/${pollId}/${safeEmail}`)))
+      .pipe(map(snap => snap.exists()));
+  }
+
+  submitVote(pollId: string, email: string, optionIds: string[]): Observable<void> {
+    const safeEmail = this.encodeKey(email);
+    const voteRef   = ref(this.db, `${this.votePath}/${pollId}/${safeEmail}`);
+    const pollRef   = ref(this.db, `${this.pollPath}/${pollId}`);
+    const voteData  = { optionIds, createdAt: new Date().toISOString() };
+
+    return new Observable<void>(o => {
       set(voteRef, voteData)
         .then(() => get(pollRef))
         .then(snap => {
-          const poll     = snap.val();
+          const poll = snap.val();
           const newTotal = (poll?.totalVotes || 0) + 1;
           return update(pollRef, { totalVotes: newTotal });
         })
-        .then(() => { observer.next(); observer.complete(); })
-        .catch(err => observer.error(err));
+        .then(() => { o.next(); o.complete(); })
+        .catch(err => o.error(err));
     });
   }
 
-  deletePoll(pollId: string): Observable<void> {
-    return from(set(ref(this.db, `${this.pollPath}/${pollId}`), null));
-  }
-
-  /* ----------------------- Private / Saved Polls ----------------------- */
-
-  getPrivatePollsByUser(userEmail: string): Observable<Poll[]> {
-    return this.getAllPolls().pipe(
-      map(polls => polls.filter(p => p.isPrivate && p.createdBy === userEmail)),
-    );
-  }
-
+  /* ── SAVED-PRIVATE helpers ── */
   savePrivatePollForUser(userId: string, pollId: string): Observable<void> {
     return from(set(ref(this.db, `savedPrivatePolls/${userId}/${pollId}`), true));
   }
 
   getSavedPrivatePollIds(userId: string): Observable<string[]> {
-    const userRef = ref(this.db, `savedPrivatePolls/${userId}`);
-    return new Observable<string[]>(observer => {
+    const path = ref(this.db, `savedPrivatePolls/${userId}`);
+    return new Observable<string[]>(o => {
       const unsub = onValue(
-        userRef,
-        snap => observer.next(snap.val() ? Object.keys(snap.val()) : []),
-        err  => observer.error(err),
-      );
-      return () => unsub();
+        path,
+        snap => o.next(snap.val() ? Object.keys(snap.val()) : []),
+        err  => o.error(err)
+      ); return () => unsub();
     });
   }
 
-  /* ──────────────────────────────────────────────────────────────── */
-  /*      Filtering / Sorting / Status (unchanged from your file)     */
-  /* ──────────────────────────────────────────────────────────────── */
-
+  /* ── UI status helpers ── */
   isPollActive(poll: Poll): boolean {
     const now = new Date();
     if (poll.startDate && new Date(poll.startDate) > now) return false;
@@ -179,37 +159,31 @@ export class PollService {
 
     const diffSec = Math.floor((end.getTime() - now.getTime()) / 1000);
     const days  = Math.floor(diffSec / 86_400);
-    const hours = Math.floor((diffSec % 86_400) / 3_600);
+    const hrs   = Math.floor((diffSec % 86_400) / 3_600);
     const mins  = Math.floor((diffSec % 3_600)  / 60);
 
-    if (days  > 0) return `${days}d ${hours}h`;
-    if (hours > 0) return `${hours}h ${mins}m`;
+    if (days > 0) return `${days}d ${hrs}h`;
+    if (hrs  > 0) return `${hrs}h ${mins}m`;
     return `${mins}m`;
   }
 
   filterByStatus(
     polls: Poll[],
-    status: 'all' | 'active' | 'inactive' | 'closed',
+    status: 'all' | 'active' | 'inactive' | 'closed'
   ): Poll[] {
     switch (status) {
-      case 'active':
-        return polls.filter(p => this.isPollActive(p));
-      case 'inactive':
-        return polls.filter(p =>
-          !this.isPollActive(p) && this.getPollStatus(p) === 'Upcoming');
-      case 'closed':
-        return polls.filter(p => this.getPollStatus(p) === 'Ended');
-      default:
-        return polls;
+      case 'active':   return polls.filter(p => this.isPollActive(p));
+      case 'inactive': return polls.filter(p =>
+                          !this.isPollActive(p) && this.getPollStatus(p) === 'Upcoming');
+      case 'closed':   return polls.filter(p => this.getPollStatus(p) === 'Ended');
+      default:         return polls;
     }
   }
 
   sortPolls(
     polls: Poll[],
-    mode:
-      | 'date-desc' | 'date-asc'
-      | 'name-asc'  | 'name-desc'
-      | 'votes-desc'| 'votes-asc',
+    mode: 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc'
+         | 'votes-desc' | 'votes-asc'
   ): Poll[] {
     return [...polls].sort((a, b) => {
       switch (mode) {
@@ -224,24 +198,17 @@ export class PollService {
     });
   }
 
-  /* ──────────────────────────────────────────────────────────────── */
-  /*                       PRIVATE HELPER                             */
-  /* ──────────────────────────────────────────────────────────────── */
-
-  /**
-   * Adds `hasVoted` to each poll for the **current** user.
-   * If no user is logged in, returns the list unchanged.
-   */
+  /* ── internal: add hasVoted flag ── */
   private attachHasVoted(polls: Poll[]): Observable<Poll[]> {
-    const userId = this.auth.user?.id;
-    if (!userId || !polls.length) return of(polls);
+    const email = this.auth.user?.email;
+    if (!email || !polls.length) return of(polls);
 
+    const safe = this.encodeKey(email);
     const checks = polls.map(p =>
-      this.checkIfUserVoted(p.id, userId).pipe(
-        map(voted => ({ ...p, hasVoted: voted }))
+      from(get(ref(this.db, `${this.votePath}/${p.id}/${safe}`))).pipe(
+        map(snap => ({ ...p, hasVoted: snap.exists() }))
       )
     );
-
     return combineLatest(checks);
   }
 }

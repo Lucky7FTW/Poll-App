@@ -25,9 +25,7 @@
     </div>
 
     <div class="add-private-link-form">
-      <label for="privateLink" class="form-label"
-        >Add Private Poll via Link</label
-      >
+      <label for="privateLink" class="form-label">Add Private Poll via Link</label>
       <div class="input-group">
         <input
           type="text"
@@ -52,7 +50,7 @@
             </h2>
             <p class="poll-description">{{ poll.description }}</p>
             <p class="poll-meta">
-              Created on {{ poll.createdAt | date : "medium" }}
+              Created on {{ poll.createdAt | date : 'medium' }}
             </p>
           </div>
           <div class="poll-stats">
@@ -60,17 +58,24 @@
             <span class="private-badge">Private</span>
           </div>
         </div>
+
+        <!-- Poll actions -->
         <div class="poll-actions">
           <a [routerLink]="['/poll', poll.id]" class="action-link">Vote</a>
-          <a [routerLink]="['/poll', poll.id, 'results']" class="action-link"
-            >Results</a
-          >
+          <a [routerLink]="['/poll', poll.id, 'results']" class="action-link">
+            Results
+          </a>
 
           <button (click)="copyPollLink(poll.id)" class="action-link copy-link">
             Copy Link
           </button>
 
-          <button (click)="deletePoll(poll.id)" class="action-link delete-link">
+          <!-- Delete is visible only if current user is the owner -->
+          <button
+            *ngIf="isOwner(poll)"
+            (click)="deletePoll(poll.id)"
+            class="action-link delete-link"
+          >
             Delete
           </button>
         </div>
