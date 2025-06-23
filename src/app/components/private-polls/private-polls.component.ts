@@ -1,15 +1,11 @@
+// src/app/pages/private-polls/private-polls.component.ts
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
 import {
-  forkJoin,
-  of,
-  switchMap,
-  map,
-  catchError,
-  take,
-  tap,
+  forkJoin, of, switchMap, map,
+  catchError, take, tap,
 } from 'rxjs';
 
 import { PollService } from '../../services/poll.service';
@@ -31,26 +27,23 @@ export class PrivatePollsComponent {
   error: string | null = null;
   polls: Poll[] = [];
 
-  /* link input */
   linkControl = new FormControl('', Validators.required);
-  addingError  = '';
+  addingError = '';
 
-  /* ─────────── life-cycle ─────────── */
+  /* ── init ── */
   ngOnInit() {
-    /** Whenever user changes (incl. auto-login), refresh list */
     this.auth.user$
       .pipe(switchMap(() => this.fetchPrivatePolls()))
       .subscribe();
   }
 
-  /* ─────────── ownership helper ─────────── */
-  /** Returns true if the logged-in user created the poll */
+  /* ── owner check ── */
   isOwner(poll: Poll): boolean {
-    const user = this.auth.user;
-    return !!user && poll.createdBy === user.id; // adjust property name if needed
+    const u = this.auth.user;
+    return !!u && poll.createdBy === u.email;
   }
 
-  /* ─────────── core fetch logic ─────────── */
+  /* ── core fetch ── */
   private fetchPrivatePolls() {
     this.loading = true;
     this.error   = null;
@@ -63,46 +56,48 @@ export class PrivatePollsComponent {
     }
 
     return this.pollService.getSavedPrivatePollIds(user.id).pipe(
-      switchMap((ids) => {
+      tap(ids => console.log('[DBG-1] savedPrivatePollIds:', ids)),        // DBG-1
+      switchMap(ids => {
         if (!ids.length) return of([] as Poll[]);
-        const requests = ids.map((id) => this.pollService.getPollById(id));
+        const requests = ids.map(id =>
+          this.pollService.getPollById(id).pipe(
+            catchError(err => {                                              // log individual errors
+              console.error('[DBG-getPollById ERROR]', id, err);
+              return of(null);
+            })
+          )
+        );
         return forkJoin(requests);
       }),
-      map((arr) => arr.filter(Boolean) as Poll[]),
+      tap(arr => console.log('[DBG-2] polls fetched:', arr)),              // DBG-2
+      map(arr => (arr.filter(p => p && p.isPrivate) as Poll[])),
+      tap(p  => console.log('[DBG-3] after filter:', p)),                  // DBG-3
       tap({
-        next: (p) => {
-          this.polls   = p;
-          this.loading = false;
-        },
-        error: () => {
-          this.loading = false;
-          this.error   = 'Failed to load private polls.';
-        },
+        next: p => { this.polls = p; this.loading = false; },
+        error: () => { this.loading = false; this.error = 'Failed to load private polls.'; },
       }),
       take(1),
-      catchError(() => of(null))
+      catchError(() => of(null)),
     );
   }
 
-  /* ─────────── clipboard & delete ─────────── */
+  /* ── clipboard & delete ── */
   copyPollLink(id: string) {
-    const url = `${location.origin}/poll/${id}`;
-    navigator.clipboard
-      .writeText(url)
+    navigator.clipboard.writeText(`${location.origin}/poll/${id}`)
       .then(() => alert('Link copied to clipboard!'))
-      .catch(() => (this.error = 'Failed to copy link.'));
+      .catch(()  => this.error = 'Failed to copy link.');
   }
 
   deletePoll(id: string) {
     if (!confirm('Are you sure you want to delete this poll?')) return;
 
     this.pollService.deletePoll(id).pipe(take(1)).subscribe({
-      next: () => (this.polls = this.polls.filter((p) => p.id !== id)),
-      error: () => (this.error = 'Failed to delete poll.'),
+      next: () => this.polls = this.polls.filter(p => p.id !== id),
+      error: () => this.error = 'Failed to delete poll.',
     });
   }
 
-  /* ─────────── add by link ─────────── */
+  /* ── add by link ── */
   addPrivatePollByLink() {
     this.addingError = '';
 
@@ -111,44 +106,40 @@ export class PrivatePollsComponent {
       return;
     }
 
-    const url     = this.linkControl.value!.trim();
-    const parts   = url.split('/');
-    const pollId  = parts.pop() || parts.pop(); // handles trailing slash
+    const raw = this.linkControl.value!.trim();
+    let pollId = '';
 
-    if (!pollId) {
-      this.addingError = 'Invalid link format.';
-      return;
+    try {
+      const u = new URL(raw);
+      pollId = u.pathname.split('/').filter(Boolean).pop() || '';
+    } catch {
+      const parts = raw.split('/');
+      pollId = parts.pop() || parts.pop() || '';
     }
 
+    if (!pollId) { this.addingError = 'Invalid link format.'; return; }
+
     const user = this.auth.user;
-    if (!user) {
-      this.addingError = 'You must be logged in.';
+    if (!user) { this.addingError = 'You must be logged in.'; return; }
+
+    if (this.polls.some(p => p.id === pollId)) {
+      this.addingError = 'Poll already in your list.';
       return;
     }
 
     this.pollService.getPollById(pollId).pipe(take(1)).subscribe({
-      next: (poll) => {
-        if (!poll) {
-          this.addingError = 'Poll not found.';
-          return;
-        }
-        if (!poll.isPrivate) {
-          this.addingError = 'This is not a private poll.';
-          return;
-        }
+      next: poll => {
+        if (!poll)           { this.addingError = 'Poll not found.'; return; }
+        if (!poll.isPrivate) { this.addingError = 'This is not a private poll.'; return; }
 
-        this.pollService
-          .savePrivatePollForUser(user.id, poll.id!)
+        this.pollService.savePrivatePollForUser(user.id, poll.id!)
           .pipe(take(1))
           .subscribe({
-            next: () => {
-              this.polls.push(poll);
-              this.linkControl.reset();
-            },
-            error: () => (this.addingError = 'Failed to save poll link.'),
+            next: () => { this.polls.push(poll); this.linkControl.reset(); },
+            error: () => this.addingError = 'Failed to save poll link.'
           });
       },
-      error: () => (this.addingError = 'Failed to fetch poll.'),
+      error: () => this.addingError = 'Failed to fetch poll.'
     });
   }
 }
