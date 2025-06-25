@@ -114,8 +114,10 @@ Navigate to **[http://localhost:4200](http://localhost:4200)** — PollVote will
 * **Secure Authentication** – Email/password & social logins
 * **Advanced Analytics** – Interactive charts and graphs
 * **Customizable Polls** – Multiple question types, themes, branding
-* **Easy Sharing** – Direct links
+* **Easy Sharing** – Direct links, QR codes, and social media
 * **Vote Verification** – Prevent duplicate voting
+* **Export Options** – Download results as PDF, CSV, Excel
+
 ---
 
 ## 🏗️ Architecture
@@ -175,6 +177,51 @@ The application follows a modular architecture:
 * Rate limiting & spam protection
 * TLS in transit, encryption at rest
 * Granular Firestore rules
+
+---
+
+## 🚀 Deploying to Vercel
+
+PollVote ships with an Angular production build (output to `dist/poll-app/`) that Vercel can host as a globally‑cached static site. Choose whichever workflow fits your style.
+
+### A. GitHub integration (zero‑CLI)
+
+1. Push your fork/mirror to GitHub.
+2. Go to **[https://vercel.com/new](https://vercel.com/new)** and pick your repository.
+3. When prompted, use these build settings:
+
+   | Setting              | Value           |
+   | -------------------- | --------------- |
+   | **Framework Preset** | **Angular**     |
+   | **Build Command**    | `npm run build` |
+   | **Output Directory** | `dist/poll-app` |
+4. In **Settings ▸ Environment Variables** add your Firebase keys (the same ones you placed in `environment.ts`). Example names:
+
+   * `NG_APP_FIREBASE_API_KEY`
+   * `NG_APP_FIREBASE_AUTH_DOMAIN`
+   * …etc.
+5. Click **Deploy**. Vercel installs dependencies, builds the Angular project, and serves the static output. A preview URL appears in seconds. Every push to `main` triggers a new deployment.
+
+### B. Vercel CLI (for local testing & scripted deploys)
+
+```bash
+npm i -g vercel             # one‑time install
+vercel                      # interactive – great for previews
+overcel --prod              # publish the current commit as production
+```
+
+Create an optional project config to skip prompts:
+
+```json
+// .vercel/project.json
+{
+  "framework": "angular",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist/poll-app"
+}
+```
+
+> **Tip:** add `vercel --prod` to the `deploy` job in your `.github/workflows/ci.yml` to turn CI builds into automatic production releases.
 
 ---
 
