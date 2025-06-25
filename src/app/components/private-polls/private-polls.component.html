@@ -1,0 +1,85 @@
+<div class="private-polls-container">
+  <div class="list-header">
+    <h1 class="list-title">Private Polls</h1>
+    <a routerLink="/create" class="create-button">Create New Poll</a>
+  </div>
+
+  <div *ngIf="loading" class="loading-container">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+
+  <ng-container *ngIf="!loading && !error">
+    <div *ngIf="polls.length === 0" class="empty-state">
+      <p class="empty-message">You don't have any private polls yet</p>
+      <p>
+        Private polls are only accessible via direct link and won't appear in
+        public listings.
+      </p>
+      <a routerLink="/create" class="primary-button">
+        Create Your First Private Poll
+      </a>
+    </div>
+
+    <div class="add-private-link-form">
+      <label for="privateLink" class="form-label">Add Private Poll via Link</label>
+      <div class="input-group">
+        <input
+          type="text"
+          id="privateLink"
+          [formControl]="linkControl"
+          placeholder="https://yourapp.com/poll/private-abc123"
+          class="form-input"
+        />
+        <button (click)="addPrivatePollByLink()" class="add-button">Add</button>
+      </div>
+      <div *ngIf="addingError" class="error-message">
+        {{ addingError }}
+      </div>
+    </div>
+
+    <div *ngIf="polls.length > 0" class="polls-grid">
+      <div *ngFor="let poll of polls" class="poll-card">
+        <div class="poll-content">
+          <div class="poll-info">
+            <h2 class="poll-title">
+              <a [routerLink]="['/poll', poll.id]">{{ poll.title }}</a>
+            </h2>
+            <p class="poll-description">{{ poll.description }}</p>
+            <p class="poll-meta">
+              Created on {{ poll.createdAt | date : 'medium' }}
+            </p>
+          </div>
+          <div class="poll-stats">
+            <span class="vote-count">{{ poll.totalVotes || 0 }} votes</span>
+            <span class="private-badge">Private</span>
+          </div>
+        </div>
+
+        <!-- Poll actions -->
+        <div class="poll-actions">
+          <a [routerLink]="['/poll', poll.id]" class="action-link">Vote</a>
+          <a [routerLink]="['/poll', poll.id, 'results']" class="action-link">
+            Results
+          </a>
+
+          <button (click)="copyPollLink(poll.id)" class="action-link copy-link">
+            Copy Link
+          </button>
+
+          <!-- Delete is visible only if current user is the owner -->
+          <button
+            *ngIf="isOwner(poll)"
+            (click)="deletePoll(poll.id)"
+            class="action-link delete-link"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

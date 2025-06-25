@@ -1,0 +1,46 @@
+<!-- loading spinner -->
+<div *ngIf="loading" class="loading-container">
+  <div class="loading-spinner"></div>
+</div>
+
+<!-- profile form -->
+<form *ngIf="!loading"
+      [formGroup]="profileForm"
+      (ngSubmit)="updateProfile()"
+      class="profile-form">
+
+  <!-- avatar preview -->
+  <div class="avatar-section">
+    <div class="avatar">
+      {{ profileForm.get('displayName')?.value?.charAt(0) || 'U' }}
+    </div>
+  </div>
+
+  <!-- Display name -->
+  <label class="form-label">
+    Display Name
+    <input formControlName="displayName"
+           class="form-input"
+           [class.input-error]="profileForm.get('displayName')?.invalid &&
+                                profileForm.get('displayName')?.touched" />
+  </label>
+
+  <!-- Email (read-only) -->
+  <label class="form-label">
+    Email
+    <!-- removed bare `disabled` attribute -->
+    <input formControlName="email"
+           class="form-input disabled"
+           [disabled]="true" />
+  </label>
+
+  <!-- status banners -->
+  <div *ngIf="updateSuccess" class="success-message">Profile updated!</div>
+  <div *ngIf="updateError"   class="error-message">{{ updateError }}</div>
+
+  <button type="submit"
+          class="submit-button"
+          [disabled]="profileForm.invalid || loading">
+    Update Profile
+  </button>
+</form>
