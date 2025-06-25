@@ -5,22 +5,51 @@
 [![Firebase](https://img.shields.io/badge/Firebase-Integrated-FFA000)](https://firebase.google.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.4-3178C6)](https://www.typescriptlang.org/)
 
+---
 
 ## 🔍 Overview
 
-PollVote is a modern, intuitive polling application developed with Angular and Firebase as part of the NTT DATA Tech Trek program. This powerful platform enables users to create, share, and analyze polls with real-time results visualization, providing valuable insights through an elegant and responsive interface.
+PollVote is a modern, intuitive polling application developed with Angular and Firebase as part of the NTT DATA Tech Trek program. This powerful platform enables users to create, share, and analyze polls with real‑time results visualization, providing valuable insights through an elegant and responsive interface.
 
-## ✨ Features
+---
 
-* **Instant Poll Creation**: Create custom polls with multiple options in seconds
-* **Real-time Results**: Watch votes come in and update instantly with Firebase integration
-* **Responsive Design**: Perfect experience across all devices - desktop, tablet, and mobile
-* **Secure Authentication**: User authentication with email/password and social login options
-* **Advanced Analytics**: Comprehensive data visualization with interactive charts and graphs
-* **Customizable Polls**: Multiple question types, custom themes, and branding options
-* **Sharing Capabilities**: Easy sharing via direct links, QR codes, and social media integration
-* **Vote Verification**: Prevent duplicate voting with various verification methods
-* **Export Options**: Download results in multiple formats (PDF, CSV, Excel)
+## 🔄 Fork & Clone — Bring PollVote into **your** GitHub account
+
+> **Quick TL;DR**
+>
+> 1. Click **Fork** at the top‑right of the [original repo](https://github.com/Lucky7FTW/Poll-App)
+> 2. Clone *your fork*:
+>
+>    ```bash
+>    git clone https://github.com/<your‑github‑username>/Poll-App.git
+>    cd Poll-App
+>    ```
+> 3. Keep the original repo handy for future pulls:
+>
+>    ```bash
+>    git remote add upstream https://github.com/Lucky7FTW/Poll-App.git
+>    ```
+> 4. Work locally → `git push origin <branch>` to publish changes to *your* repo.
+>
+> ✨  Now you can open PRs back to the upstream project or keep PollVote fully detached in your own space.
+
+### Why fork first?
+
+Forking gives you full write access to your own copy while preserving an easy path to pull improvements from the original team.
+
+If you **don’t** need that upstream link (e.g. you’re starting a proprietary variant), you can also duplicate without the “fork” badge:
+
+```bash
+# One‑liner mirror copy (keeps history, strips fork banner)
+# Replace NEW_URL with the empty GitHub repo you just created
+
+git clone --mirror https://github.com/Lucky7FTW/Poll-App.git  poll-app-mirror
+cd poll-app-mirror
+git remote set-url origin <NEW_URL>
+git push --mirror
+```
+
+---
 
 ## 🚀 Getting Started
 
@@ -31,67 +60,26 @@ PollVote is a modern, intuitive polling application developed with Angular and F
 * npm (v10.0 or higher)
 * Firebase account
 
-## 🔥 Firebase Configuration
+### 1️⃣ Clone your fork (or the repo you mirrored)
 
-This project leverages Firebase's powerful real-time capabilities and requires proper configuration via environment variables.
-
-### 📋 Prerequisites:
-
-1. Create a Firebase account at [firebase.google.com](https://firebase.google.com/)
-2. Set up a new Firebase project or use an existing one
-3. Configure the following Firebase services:
-   * Firebase Authentication
-   * Cloud Firestore
-   * Realtime Database
-   * Firebase Storage
-   * Firebase Hosting (for deployment)
-
-> [!NOTE]
-> Real-time functionality depends on proper Firebase configuration. All services must be correctly set up for optimal performance.
-
-### 🔑 Getting your Firebase Configuration Keys:
-
-1. Navigate to the [Firebase Console](https://console.firebase.google.com/)
-2. Select your project
-3. Click on the gear icon (⚙️) next to "Project Overview" to access Project settings
-4. Under the "Your apps" section, select your web app (or create one by clicking the web icon </>)
-5. Copy the Firebase configuration object containing your API keys and credentials
-
-### 🛠️ Additional Firebase Setup:
-
-1. **Authentication**: Enable Email/Password and Google authentication methods
-2. **Firestore**: Create a database with the following collections:
-   * `polls` - Store poll information
-   * `votes` - Record user votes
-   * `users` - User profiles and preferences
-3. **Storage**: Configure storage for poll images and assets
-4. **Security Rules**: Implement proper security rules to protect your data
-
-> [!TIP]
-> Use Firebase's development environment for testing to keep your production data clean.
-
-## 💻 Installation
-
-### Clone the repository:
 ```bash
-git clone https://github.com/yourusername/pollvote.git
+git clone https://github.com/<your‑github‑username>/Poll-App.git
+cd Poll-App
 ```
 
-### Navigate to the project directory:
-```bash
-cd ./pollvote
-```
+> If you used the **mirror** method, substitute the URL of that new repo instead.
 
-### Install dependencies:
+### 2️⃣ Install dependencies
+
 ```bash
 npm install
 ```
 
-### Set up environment variables
+### 3️⃣ Configure Firebase
 
-Create a .env file in the root directory of the project with the following structure:
+Create a file **`src/environments/environment.ts`** (or use your favourite secrets manager) with:
 
-```javascript
+```ts
 export const environment = {
   production: false,
   firebase: {
@@ -106,83 +94,92 @@ export const environment = {
 };
 ```
 
-> [!CAUTION]
-> Never commit your .env or environment.ts file to version control. These files contain sensitive API keys and credentials that should remain private.
+> **Never** commit environment files to version control.
 
-### Start the development server
+### 4️⃣ Run the dev server
 
 ```bash
 ng serve
 ```
 
-> [!NOTE]
-> Open your browser and navigate to http://localhost:4200
+Navigate to **[http://localhost:4200](http://localhost:4200)** — PollVote will hot‑reload on file changes.
+
+---
+
+## ✨ Features
+
+* **Instant Poll Creation** – Create custom polls with multiple options in seconds
+* **Real‑time Results** – Watch votes update instantly with Firebase integration
+* **Responsive Design** – Seamless experience on desktop, tablet, and mobile
+* **Secure Authentication** – Email/password & social logins
+* **Advanced Analytics** – Interactive charts and graphs
+* **Customizable Polls** – Multiple question types, themes, branding
+* **Easy Sharing** – Direct links
+* **Vote Verification** – Prevent duplicate voting
+---
 
 ## 🏗️ Architecture
-The application follows a modular architecture with:
 
-- **Core Module**: Authentication, guards, and services
-- **Shared Module**: Reusable components, directives, and pipes
-- **Feature Modules**:
+The application follows a modular architecture:
 
-- Poll Creation
-- Poll Voting
-- Results Visualization
-- User Management
-
-
-
-- **State Management**: Reactive approach with RxJS and Firebase observables
+| Layer               | Purpose                                                            |
+| ------------------- | ------------------------------------------------------------------ |
+| **Core Module**     | Authentication, guards, base services                              |
+| **Shared Module**   | Reusable components, directives, pipes                             |
+| **Feature Modules** | Poll Creation, Poll Voting, Results Visualization, User Management |
+| **State**           | Reactive with RxJS & Firebase observables                          |
 
 ### Tech Stack
 
-- **Frontend**: Angular 19 with TypeScript
-- **Backend**: Firebase (Authentication, Firestore, Storage)
-- **Styling**: Custom CSS with responsive design
-- **Visualization**: Chart.js for poll results
-- **CI/CD**: GitHub Actions and Vercel
+* **Frontend** – Angular 19 + TypeScript
+* **Backend** – Firebase (Authentication, Firestore, Storage)
+* **Styling** – Custom CSS, responsive design
+* **Charts** – Chart.js for results visualisation
+* **CI/CD** – GitHub Actions → Vercel
+
+---
 
 ## 👥 Team
 
-PollVote was developed by the following Tech Trek Angular team at NTT DATA:
+| Name                | Responsibility                            |
+| ------------------- | ----------------------------------------- |
+| **Gengiu Robert**   | Frontend Architect & UI/UX Designer       |
+| **Maxim Francesco** | Firebase Integration & Data Visualisation |
+| **Tibrea Mihai**    | Authentication & Security Specialist      |
 
-| Name | Role
-|-----|-----
-| Gengiu Robert | Frontend Architect & UI/UX Designe
-| Maxim Francesco | Firebase Integration & Data Visualization
-| Tibrea Mihai | Authentication & Security Specialist
+---
 
 ## 🌟 Key Differentiators
 
-- **Lightning-Fast Performance**: Optimized Angular application with lazy-loading modules
-- **Intuitive User Experience**: Thoughtfully designed interfaces for both poll creators and voters
-- **Real-time Collaboration**: Multiple users can view results simultaneously with live updates
-- **Advanced Analytics**: Gain insights through comprehensive data visualization
-- **Robust Security**: Secure authentication and data protection measures
-- **Accessibility**: WCAG compliant design ensuring everyone can participate
+* **Lightning‑Fast** lazy‑loaded Angular modules
+* **Intuitive UX** for poll creators and voters alike
+* **Live Collaboration** – everyone sees updates in real time
+* **Deep Analytics** via rich charting dashboards
+* **Robust Security** & WCAG‑compliant accessibility
 
+---
 
 ## 📱 Mobile Experience
 
-PollVote is designed with a mobile-first approach, ensuring a seamless experience across all devices:
+* Responsive layouts for any screen
+* Touch‑optimised components
+* Offline voting support
+* PWA install prompts for iOS/Android
 
-- Responsive layouts that adapt to any screen size
-- Touch-optimized interfaces for easy interaction
-- Offline capabilities for voting without constant connectivity
-- Progressive Web App (PWA) features for installation on mobile devices
-
+---
 
 ## 🔒 Security Measures
 
-- **Authentication**: Secure user authentication through Firebase Auth
-- **Data Validation**: Client and server-side validation to prevent malicious data
-- **Rate Limiting**: Protection against spam and abuse
-- **Data Encryption**: Sensitive information is encrypted in transit and at rest
-- **Access Control**: Granular permissions system for poll management
+* Secure Firebase Auth flow
+* Client & server‑side data validation
+* Rate limiting & spam protection
+* TLS in transit, encryption at rest
+* Granular Firestore rules
 
+---
 
 ## 📝 License
 
-This project was developed during the TechTrek program at NTT DATA. All rights reserved.
+This project was developed during the TechTrek program at NTT DATA. All rights reserved.
 
-© 2025 NTT DATA | Developed by Gengiu Robert, Maxim Francesco, and Tibrea Mihai
+© 2025 NTT DATA | Developed by Gengiu Robert, Maxim Francesco, and Tibrea Mihai
